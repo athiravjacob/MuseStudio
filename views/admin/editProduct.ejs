@@ -1,0 +1,158 @@
+<%- include('../layoutAdmin/header.ejs') %>
+<%- include('../layoutAdmin/asideMenu.ejs') %>
+<main class="main-wrap">
+    <%- include('../layoutAdmin/header.ejs') %>
+    <section class="content-main">
+        <div class="row">
+            <div class="col-9">
+                <div class="content-header">
+                    <h2 class="content-title">Edit Product</h2>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Basic</h4>
+                    </div>
+                    <!-- Edit Product Details -->
+                    <div class="card-body">
+                        <%-include('../layoutUser/flashError.ejs') %>
+                        <form id="editProductForm" >
+                            
+                            <div class="mb-4">
+                                <label  class="form-label">Product title</label>
+                                <input type="text" value="<%= product.name %>" class="form-control" name="name">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Full description</label>
+                                <textarea class="form-control" name="description" rows="4"><%= product.description %></textarea>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-lg-4">
+                                    <label class="form-label">Category</label>
+                                    <select name="category" class="form-select">
+                                        <% category.forEach((cat) => { %>
+                                            <option value="<%= cat._id %>" <%= product.category[0].name === cat.name ? 'selected' : '' %>><%= cat.name %></option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label">Brand</label>
+                                    <select name="brand" class="form-select">
+                                        <option value="Bohemian Crystal" <%= product.brand === 'Bohemian Crystal' ? 'selected' : '' %>>Bohemian Crystal</option>
+                                        <option value="Ambiente" <%= product.brand === 'Ambiente' ? 'selected' : '' %>>Ambiente</option>
+                                        <option value="Black Swan" <%= product.brand === 'Black Swan' ? 'selected' : '' %>>Black Swan</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label">Material</label>
+                                    <select name="material" class="form-select">
+                                        <option value="Ceramic" <%= product.material === 'Ceramic' ? 'selected' : '' %>>Ceramic</option>
+                                        <option value="Terracotta" <%= product.material === 'Terracotta' ? 'selected' : '' %>>Terracotta</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Price</label>
+                                        <input value="<%= product.price %>" type="text" name="price" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Quantity</label>
+                                        <input value="<%= product.quantity %>" type="text" name="quantity" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <button  onclick="updateProduct('<%=product._id%>')" class="btn btn-md rounded font-sm mr-5 hover-up">Update Product</button>
+                        </form>
+                    </div>
+                   
+                </div> 
+            </div>
+            <!-- Edit Image -->
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="mb-4 input-upload">
+                            <div class="detail-gallery">
+                                <% if (product.images.length > 0) { %>
+                                    <div class="slider-nav-thumbnails pl-15 pr-15 d-flex flex-row gap-1">
+                                        <% product.images.forEach((image, index) => { %>
+                                            <div class="thumbnail imgContainer d-flex flex-row">
+                                                <button class="close-btn" onclick="removeImage('<%=product._id%>','<%=image%>')"  data-index="<%= index %>">×</button>
+                                                <img src="/<%= image %>" alt="product image" width="150px" data-index="<%= index %>" data-full="/<%= image %>">
+                                            </div>
+                                            
+                                        <% }) %>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple>
+                            <button class="btn btn-md rounded font-sm mr-5 hover-up">Save</button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+    </section> <!-- content-main end// -->
+</main>
+
+<script>
+    const removeImage = async(productId,imageUrl)=>{
+        try {
+            try {
+                const response = await fetch(`/admin/products/edit/remove-image/${productId}`,{
+                    method:'delete',
+                    headers:{
+                        "content-Type":"application/json"
+                    },
+                    body:JSON.stringify({image:imageUrl})
+                }
+                    
+                )
+                if(response.ok){
+                    window.location.reload()
+                }
+            } catch (error) {
+                
+            }
+        } catch (error) {
+            
+        }
+    }
+
+   const updateProduct= async(id)=> {
+    console.log(id)
+        const form = document.getElementById('editProductForm')
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        console.log("inside updteProduct")
+        console.log(data)
+        
+        try {
+            let response = await fetch(`/admin/products/edit/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.location.reload(); // Refresh page on success
+            } else {
+                console.log('Error updating the product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+</script>
+
+<%- include('../layoutAdmin/footer.ejs') %>
+

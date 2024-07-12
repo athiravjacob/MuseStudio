@@ -1,0 +1,210 @@
+<%-include('../layoutAdmin/header.ejs') %>
+    <%-include('../layoutAdmin/asideMenu.ejs') %>
+    <main class="main-wrap">
+        <%-include('../layoutAdmin/header.ejs') %>
+        <section class="content-main">
+            <div class="row">
+                <div class="col-9">
+                    <div class="content-header">
+                        <h2 class="content-title">Add New Product</h2>
+                        
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Basic</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data" id="product-form">
+                                <div class="mb-4">
+                                    <label  class="form-label">Product title</label>
+                                    <input type="text" placeholder="Type here" class="form-control" name="name">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Full description</label>
+                                    <textarea placeholder="Type here" class="form-control" name="description" rows="4"></textarea>
+                                </div>
+                                <div class="row mb-4">
+                                        <div class="col-lg-4">
+                                            <label class="form-label">Category</label>
+                                            <select name="category" class="form-select">
+                                                <% if(category.length >0) {%>
+                                                <% category.forEach((category)=>{ %>
+                                                    <% if(category.status){ %>
+                                                    <option><%=category.name %></option>
+                                                    <% } %>
+                                                <% })} %>
+
+                                            </select>
+                                        </div>
+                                    
+                                    <div class="col-lg-4">
+                                        <label class="form-label">Brand</label>
+                                        <select name="brand" class="form-select">
+                                            <option> Bohemian Crystal </option>
+                                            <option> Ambiente </option>
+                                            <option> Black Swan </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label class="form-label">Material</label>
+                                        <select name="material" class="form-select">
+                                            <option> Ceramic </option>
+                                            <option> Terracotta </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <div class="mb-4">
+                                            <label class="form-label">Price</label>
+                                            <div class="row gx-2">
+                                                <input placeholder="$" type="text" name="price" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="mb-4">
+                                            <label class="form-label">Quantity</label>
+                                            <input placeholder="$" type="text" name ="quantity" class="form-control">
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h4>Media</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-upload">
+                                            <div id="preview-container"></div>
+                                            <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple>
+                                        </div>
+                                        <div id="cropper-container" style="display: none;">
+                                            <img id="cropper-image" src="">
+                                            <button type="button" id="crop-btn">Crop and Add</button>
+                                        </div>
+                                    </div>
+                                </div>
+    
+                               
+    
+                                <button class="btn btn-md rounded font-sm mr-5 hover-up" type="submit">Add Product</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const cropperContainer = document.getElementById('cropper-container');
+        const cropperImage = document.getElementById('cropper-image');
+        const cropBtn = document.getElementById('crop-btn');
+        const form = document.getElementById('product-form');
+        let files = [];
+        let cropper;
+    
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    cropperImage.src = e.target.result;
+                    cropperContainer.style.display = 'block';
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                    });
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    
+        cropBtn.addEventListener('click', function() {
+            if (cropper) {
+                const croppedCanvas = cropper.getCroppedCanvas({
+                    width: 500,
+                    height: 500
+                });
+                croppedCanvas.toBlob(function(blob) {
+                    const file = new File([blob], 'cropped_image.jpg', { type: 'image/jpeg' });
+                    console.log(file)
+                    files.push(file);
+                    addPreview(file);
+                    cropperContainer.style.display = 'none';
+                    fileInput.value = ''; // Reset file input
+                }, 'image/jpeg');
+            }
+        });
+    
+        function addPreview(file) {
+            const container = document.createElement('div');
+            container.className = 'preview-container';
+    
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'preview-image';
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            container.appendChild(img);
+    
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = () => removeImage(files.indexOf(file));
+            container.appendChild(removeBtn);
+    
+            previewContainer.appendChild(container);
+        }
+    
+        function removeImage(index) {
+            files.splice(index, 1);
+            updatePreviews();
+        }
+    
+        function updatePreviews() {
+            previewContainer.innerHTML = '';
+            files.forEach(file => addPreview(file));
+        }
+    
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            console.log(formData)
+            files.forEach(file => {
+                console.log(file)
+                formData.append('images', file);
+            });
+    
+            fetch('/admin/products/addProduct', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product added successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error adding product: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the product.');
+            });
+        });
+    </script>
+    
+    <%-include('../layoutAdmin/footer.ejs') %>

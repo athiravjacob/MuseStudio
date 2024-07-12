@@ -1,0 +1,58 @@
+<%- include('../layoutUser/header.ejs') %>
+<section class="pt-150 pb-150 text-center ">
+    <div class=" justify-content-center">
+        <div class="container-fluid ">
+            <div class="col-lg-6 mx-auto login_wrap widget-taber-content p-30 background-white border-radius-5">
+                <div class="heading_s1 ">
+                    <h3>We sent you a code</h3>
+                    <p>Please, enter it below to verify your email</p>
+                    <p class="text-danger fw-900" id ="timer"> </p>
+                    <p class="text-primary"><%= email %></p>
+                    <div>
+                        
+                    </div>
+                    <form method="post" action="/verifyOTP" >
+                        <div class="form-group d-flex justify-content-lg-around mx-auto" style="width:350px;">
+                            <input type="text" name="otpCode1" class="form-control otp-input" maxlength="1" required>
+                            <input type="text" name="otpCode2" class="form-control otp-input" maxlength="1" required>
+                            <input type="text" name="otpCode3" class="form-control otp-input" maxlength="1" required>
+                            <input type="text" name="otpCode4" class="form-control otp-input" maxlength="1" required>
+                        </div>
+                        <%- include('../layoutUser/flashError.ejs') %>
+
+                        <button type="submit" id="verify" class="btn btn-primary btn-block">Verify OTP</button>
+                        
+                        <a class="btn btn-primary " style="display: none;" id="resend" href="/resendOTP">Resend OTP</a>
+
+                    </form>
+            </div>
+        </div>
+    </div>
+
+</section>
+<script>
+    const timer = document.getElementById('timer')
+    const verifyButton = document.getElementById('verify')
+    const resendButton = document.getElementById('resend')
+    let timeLeft = 120;
+    function updateTimer(){
+       
+    let minutes =Math.floor(timeLeft/60)
+    let seconds = timeLeft%60
+
+    seconds= seconds<10?'0'+seconds:seconds
+    timer.textContent = `${minutes}:${seconds}` 
+    if(timeLeft >0){
+        timeLeft--
+        setTimeout(updateTimer,1000)
+    }else{
+        resendButton.style.display='block'
+        verifyButton.style.display ='none'
+        timer.textContent="Times up"
+    }
+    }
+
+    updateTimer()
+
+</script>
+<%- include('../layoutUser/footer.ejs') %>

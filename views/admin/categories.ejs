@@ -1,0 +1,196 @@
+<%-include('../layoutAdmin/header.ejs') %>
+    <%-include('../layoutAdmin/asideMenu.ejs') %>
+    <main class="main-wrap">
+        <%-include('../layoutAdmin/navigation.ejs') %>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Categories </h2>
+                    <p>Add, edit or delete a category</p>
+                </div>
+                <p id="message"></p>
+                <div>
+                    <input type="text" placeholder="Search Categories" class="form-control bg-white">
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <form method="post" action="/admin/category/addCategory" id="categoryForm">
+                                <div class="mb-4">
+                                    <label  class="form-label">Name</label>
+                                    <input type="text" id="nameInput" placeholder="Type here" class="form-control" name="name" />
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Description</label>
+                                    <textarea id="descriptionInput" placeholder="Type here" name="description" class="form-control"></textarea>
+                                </div>
+                                <% if (success_msg) { %>
+                                    <div style="color: green;"><%= success_msg %></div>
+                                <% } %>
+                                <% if (error_msg) { %>
+                                    <div id="error_msg" style="color: red;"><%= error_msg %></div>
+                                <% } %>
+                                
+                                <div class="d-grid">
+                                    <button class="btn btn-primary" id="createCategory" type="submit">Create category</button>
+                                    <button class="btn btn-primary d-none " id="editCategory" type="button"  >Edit category</button>
+
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    
+                                    <tbody>
+                                        
+                                        <% if(category.length >0){ %>
+                                            <% for(let i =0;i< category.length;i++){ %>
+                                        <tr>
+                                            <td><b><%=category[i].name %></b></td>
+                                            <td><%=category[i].description %></td>
+                                            <% if (category[i].status) { %>
+                                                <td><span class="badge rounded-pill alert-success">Active</span></td>
+                                                <% } else { %>
+                                                <td><span class="badge rounded-pill alert-danger">Inactive</span></td>
+                                                <% } %>   
+                                             
+                                            <td class="text-end">
+                                                <div class="dropdown">
+                                                    <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
+                                                    <div class="dropdown-menu">
+                                                        <a class="dropdown-item" href="#">View detail</a>
+                                                        <a class="dropdown-item" onclick="changeToEdit('<%=category[i]._id%>','<%=category[i].name%>','<%=category[i].description%>')" href="#" >Edit info</a>
+                                                       
+                                                        <%if(category[i].status){ %>
+                                                            <a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteCategory('<%=category[i]._id%>')" >Delete</a>
+                                                        <% }else{ %>
+                                                            <a class="dropdown-item text-danger" onclick="deleteCategory('<%=category[i]._id%>')" href="javascript:void(0)" >Restore</a>
+                                                        <% } %>
+                                                            
+
+                                                    </div>
+                                                </div> <!-- dropdown //end -->
+                                            </td>
+
+                                        </tr>
+                                        <% } %>
+                                        <% } %>
+                                         
+                                    </tbody>
+                                   
+                                </table>
+                            </div>
+                        </div> <!-- .col// -->
+                    </div> <!-- .row // -->
+                </div> <!-- card body .// -->
+            </div> <!-- card .// -->
+        </section> <!-- content-main end// -->
+        <script>
+            const deleteCategory =async(id)=>{
+                try {
+                    console.log("script page delete category function")
+                        let response = await fetch(`/admin/category/delete/${id}`,{
+                            method:'PATCH',
+                            headers:{
+                                'Content-Type':"application/json"
+                            },
+                            body:JSON.stringify({status:false})
+                        })
+                        if(response.ok){
+                            window.location.reload()
+                            
+                        }else{
+                            console.log("error deleting or restoring  the category")
+                        }
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        
+//*****************************************Change To Edit Category
+            const changeToEdit = async(id,name,desc)=>{
+                try {
+
+                const categoryForm = document.getElementById('categoryForm')
+                const createButton = document.getElementById('createCategory')
+                const editButton = document.getElementById('editCategory')
+                const nameField = document.getElementById('nameInput')
+                const descField = document.getElementById('descriptionInput')
+                nameField.value =name
+                descField.value = desc
+                createButton.classList.add('d-none')
+                editButton.classList.remove('d-none')
+                categoryForm.removeAttribute('action')
+                editButton.setAttribute('data-category-id',id)
+
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            
+            //********************* Edit Category
+            document.addEventListener('DOMContentLoaded', function() {
+                const editButton = document.getElementById('editCategory');
+                const categoryForm = document.getElementById('categoryForm');
+                // categoryForm.addEventListener('submit', function(event) {
+                //     event.preventDefault();
+                //     console.log('Form submit prevented');
+                // });
+                editButton.addEventListener('click', editCategory);
+
+                
+            });
+
+const editCategory = async () => {
+   
+
+    try {
+        const editButton = document.getElementById('editCategory');
+        const nameField = document.getElementById('nameInput');
+        const descField = document.getElementById('descriptionInput');
+        const categoryId = editButton.getAttribute('data-category-id');
+        const categoryForm = document.getElementById('categoryForm')
+
+        
+        console.log('Category ID:', categoryId);
+        console.log('Name:', nameField.value);
+        console.log('Description:', descField.value);
+        const data = {}
+        const formData = new FormData(categoryForm).forEach((value,key)=> data[key]=value)
+        const response = await fetch(`/admin/category/edit/${categoryId}`, {
+            method: 'PUT',
+            headers:{
+                'content-Type':'application/json'
+            },
+        
+            body:JSON.stringify(data )
+        });
+
+        if (response.ok) {
+           console.log('Category updated successfully');
+            categoryForm.action =`/admin/category/addCategory`
+            window.location.reload();
+        } else {
+           console.log('Error updating the category');
+            // Handle error (e.g., show an error message to the user)
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        // Handle error (e.g., show an error message to the user)
+    }
+};
+        </script>
+       <%-include('../layoutAdmin/footer.ejs') %>
