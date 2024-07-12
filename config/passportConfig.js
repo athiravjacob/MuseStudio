@@ -11,12 +11,14 @@ module.exports = function(passport){
         try {
             console.log("from passport")
             const user = await userModel.findOne({email})
-            if(user.blocked) return done(null,false,{message:"OOps!You have been blocked by the admin"})
             if(!user) return done(null, false, {message:"You have entered an invalid email"})
+            if(user.blocked) return done(null,false,{message:"OOps!You have been blocked by the admin"})
             const passMatch = await bcrypt.compare(password,user.password)
-            if(!passMatch) return done(null , false,{message:"Please check your password"})
+            if(user){
+                if(!passMatch) return done(null , false,{message:"Please check your password"})
+            }
+            
             return done(null, user)
-        
         } catch (error) {
             return done(error)
             
@@ -24,18 +26,6 @@ module.exports = function(passport){
     }))
 
 
-    passport.use('admin-local',new LocalStrategy({usernameField:'adminId'},async(adminId,password,done)=>{
-        try {
-            const admin = await adminModel.findOne({adminId });
-            if (!admin) return done(null, false, { message: "Invalid username" });
-            // const passMatch = await bcrypt.compare(password, admin.password);
-            if (password !==admin.password) return done(null, false, { message: "Incorrect password" });
-            return done(null, admin);
-        } catch (error) {
-            return done(error);
-        }
-
-    }))
 
     passport.use(new GoogleStrategy({
         clientID:process.env.CLIENT_ID,

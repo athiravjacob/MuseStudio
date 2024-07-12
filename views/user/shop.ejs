@@ -6,6 +6,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>       
                 <div class="modal-body">
                     <div class="row">
+                        
                         <div class="col-md-6 col-sm-12 col-xs-12">
                             <div class="detail-gallery">
                                 <span class="zoom-icon"><i class="fi-rs-search"></i></span>
@@ -303,10 +304,56 @@
         <section class="mt-50 mb-50">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-12">
+                    <div class="col-lg-2">
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+                            <ul class="categories">
+                                <% if(category.length>0){ %>
+                                <% category.forEach((category)=>{%>
+                                   <% if(category.status){%>
+                                    <li><a href="/shop/category/<%=category._id %>"><%=category.name %></a></li>
+
+                                  <%  }%>
+
+                               <% })} %>
+                                
+                            </ul>
+                        </div>
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Sort by</h5>
+                            <ul class="categories">
+                                <li><a href="/shop/sort-low-to-high">Price: Low to High</a></li>
+                                <li><a href="/shop/sort-high-to-low">Price: High to Low</a></li>
+                                <li><a href="/shop/sort-asc">Aa - Zz</a></li>
+                                <li><a href="/shop/sort-des">Zz - Aa</a></li>
+                            </ul>
+                        </div>
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Price Range</h5>
+                            <ul class="categories">
+                                <li><a href="shop-grid-right.html">$0-$200</a></li>
+                                <li><a href="shop-grid-right.html">$200-$400</a></li>
+                                <li><a href="shop-grid-right.html">$400-$600</a></li>
+                                <li><a href="shop-grid-right.html">$600-$800</a></li>
+                                <li><a href="shop-grid-right.html">800$+</a></li>
+                            </ul>
+                        </div>
+                        <div class="banner-img wow fadeIn mb-45mb-lg-0 animated d-lg-block d-none">
+                            <img src="/user_assets/imgs/banner/banner-11.jpg" alt="">
+                            <div class="banner-text">
+                                <span>Women Zone</span>
+                                <h4>Save 17% on <br>Office Dress</h4>
+                                <a href="shop-grid-right.html">Shop Now <i class="fi-rs-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-10">
                         <div class="shop-product-fillter">
                             <div class="totall-product">
-                                <p> We found <strong class="text-brand">688</strong> items for you!</p>
+                                <% if(products.length > 0){ %>
+                                    <p> We found <strong class="text-brand"><%=products.length %></strong> items for you!</p>
+                                <% }else{ %>
+                                    <% } %>
                             </div>
                             <div class="sort-by-product-area">
                                 <div class="sort-by-cover mr-10">

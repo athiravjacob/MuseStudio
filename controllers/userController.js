@@ -247,9 +247,44 @@ const shopByCategory = async(req,res)=>{
         const id = req.params.id
 
         const products =await productModel.find({category:id}).populate('category')
+    
         res.render("shop",{products})
     } catch (error) {
         console.log(error)
+    }
+}
+const shopLowToHigh = async(req,res)=>{
+    try {
+        const products = await productModel.find().sort({price:1})
+        res.render("shop",{products})
+    } catch (error) {
+        
+    }
+}
+const shopHighToLow = async(req,res)=>{
+    try {
+        const products = await productModel.find().sort({price:-1})
+        const count = await productModel.countDocuments()
+        res.render("shop",{products})
+    } catch (error) {
+        
+    }
+}
+const shopAscending = async(req,res)=>{
+    try {
+        const products = await productModel.find().sort({name:1})
+        res.render("shop",{products})
+    } catch (error) {
+        
+    }
+}
+const shopDescending = async(req,res)=>{
+    try {
+        const products = await productModel.find().sort({name:-1})
+        const count = await productModel.countDocuments()
+        res.render("shop",{products})
+    } catch (error) {
+        
     }
 }
 
@@ -265,7 +300,11 @@ module.exports = {
     productDetails,
     // accountBlocked,
     shop,
-    shopByCategory
+    shopByCategory,
+    shopLowToHigh,
+    shopHighToLow,
+    shopAscending,
+    shopDescending
    
 }
 

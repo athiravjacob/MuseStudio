@@ -90,8 +90,11 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple>
-                            <button class="btn btn-md rounded font-sm mr-5 hover-up">Save</button>
+                            <form id="saveImageForm" enctype="multipart/form-data">
+                                <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple>
+                                <button class="btn btn-md rounded font-sm mr-5 hover-up" onclick="saveImage('<%=product._id%>')" type="submit" >Save</button>
+                            </form>
+
                         </div>
                     </div>
                 </div>
@@ -104,8 +107,9 @@
 
 <script>
     const removeImage = async(productId,imageUrl)=>{
-        try {
+        
             try {
+                
                 const response = await fetch(`/admin/products/edit/remove-image/${productId}`,{
                     method:'delete',
                     headers:{
@@ -116,14 +120,16 @@
                     
                 )
                 if(response.ok){
+                    alert("image removed")
                     window.location.reload()
                 }
+                else{
+                    alert("image was not removed")
+                }
             } catch (error) {
-                
+                console.log(error)
             }
-        } catch (error) {
-            
-        }
+        
     }
 
    const updateProduct= async(id)=> {
@@ -152,6 +158,27 @@
             console.error('Error:', error);
         }
     };
+
+const saveImage = async(id)=>{
+    const form = document.getElementById('saveImageForm')
+    const formData = new FormData(form)
+    try {
+        const response = await fetch(`/admin/products/edit/save-image/${id}`,{
+                    method: 'PATCH',
+                    body: formData
+                });
+                if (response.ok) {
+                    alert("image uploaded")
+                   window.location.reload()
+                   
+                } else {
+                    alert("Error uploading images");
+                }
+            } catch (error) {
+                console.log( error);
+            }
+        }
+
 </script>
 
 <%- include('../layoutAdmin/footer.ejs') %>

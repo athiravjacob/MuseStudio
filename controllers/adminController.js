@@ -2,8 +2,6 @@ const userModel = require('../models/userModel')
 const categoryModel = require('../models/categoryModel')
 const productModel = require('../models/productModel')
 const adminModel = require('../models/adminModel')
-const multer = require('multer')
-const sharp = require('sharp')
 require('dotenv').config()
 
 
@@ -23,11 +21,11 @@ const verifyAdmin = async (req, res)=>{
     const {adminId ,password} = req.body
     const admin = await adminModel.findOne({adminId})
     if(!admin){
-      return res.render("/admin/",{"error_msg":"Invalid username"})
+      return res.render("/admin",{"error_msg":"Invalid username"})
     }
     else{
       if(password !== admin.password){
-        return res.render("/admin/",{"error_msg":"Invalid password"})
+        return res.render("/admin",{"error_msg":"Invalid password"})
       }
       else{
         req.session.admin = admin._id
@@ -277,7 +275,7 @@ const removeImage = async(req,res)=>{
   try {
     const id = req.params.id
     const image = req.body.image
-    console.log("inside remove image")
+    console.log(`remove image ${image}`)
     const product = await productModel.findOne({_id:id})
     if(!product) res.status(404).json({message:"Product not found"})
     product.images = product.images.filter(img => img !== image);
@@ -285,7 +283,25 @@ const removeImage = async(req,res)=>{
     res.status(200).json({ message: 'Image removed successfully', product });
 
   } catch (error) {
-    
+    console.log(error)
+  }
+}
+
+const saveProductimage = async(req,res)=>{
+  try {
+    const id = req.params.id
+    console.log("save image")
+    const imagePaths = req.files.map(file => file.path);
+    const product = await productModel.findByIdAndUpdate(id,{
+      $push :{images:{$each:imagePaths}}
+    },{new:true})
+    if(!product){
+      res.status(400).json({message:"No Product available"})
+    }else{
+      res.status(200).json({message: "Image uploaded"})
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -329,6 +345,7 @@ const logout = async(req,res)=>{
       console.log(error.message);
     }
 }
+
 module.exports ={
   loadLogin,
   verifyAdmin,
@@ -348,6 +365,7 @@ module.exports ={
   loadeditProduct,
   editProduct,
   removeImage,
+  saveProductimage,
   deleteRestoreProduct,
   logout
 }
