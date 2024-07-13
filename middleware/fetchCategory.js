@@ -1,4 +1,5 @@
 const category = require('../models/categoryModel')
+const cart = require('../models/cartModel')
 
 const fetchCategory = async(req,res,next)=>{
     try {

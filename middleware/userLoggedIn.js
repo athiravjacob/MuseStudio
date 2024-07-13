@@ -6,7 +6,7 @@ const isLoggedIn = async(req,res,next)=>{
                 if (err) {
                     return next(err);
                 }
-                return res.redirect('/blocked'); // Redirect to a "blocked" page
+                return res.redirect('/login'); 
             });
         } else {
             res.locals.userAuthenticated = true;

@@ -331,34 +331,7 @@
                                 </div>
                             
         
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const container = document.getElementById('image-container')
-                const mainImage = document.getElementById('main-image');
-                const thumbnails = document.querySelectorAll('.thumbnail img');
-        
-                thumbnails.forEach(thumbnail => {
-                    thumbnail.addEventListener('click', () => {
-                        const newSrc = thumbnail.getAttribute('data-full');
-                        mainImage.setAttribute('src', newSrc);
-                    });
-                });
-                container.addEventListener('mousemove',(e)=>{
-                    const x = e.clientX - e.target.offsetLeft
-                    const y = e.clientY - e.target.offsetTop
-                    console.log(x,y)
-                    mainImage.style.transformOrigin= `${x}px ${y}px`
-                    mainImage.style.transform = "scale(2)"
-
-           })
-
-           container.addEventListener('mouseleave',(e)=>{
-            mainImage.style.transformOrigin= "center"
-                    mainImage.style.transform = "scale(1)"
-           })
-            });
-
-        </script>
+       
         
                                 <div class="col-md-6 col-sm-12 col-xs-12">
                                     
@@ -378,9 +351,9 @@
                                         </div>
                                         <div class="clearfix product-price-cover">
                                             <div class="product-price primary-color float-left">
-                                                <ins><span class="text-brand">$120.00</span></ins>
-                                                <ins><span class="old-price font-md ml-15">$200.00</span></ins>
-                                                <span class="save-price  font-md color3 ml-15">25% Off</span>
+                                                <ins><span class="text-brand " id="productPrice">$<%=product.price %></span></ins>
+                                                <!-- <ins><span class="old-price font-md ml-15">$200.00</span></ins> -->
+                                                <!-- <span class="save-price  font-md color3 ml-15">25% Off</span> -->
                                             </div>
                                         </div>
                                         <div class="bt-1 border-color-1 mt-15 mb-15"></div>
@@ -402,12 +375,12 @@
                                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                         <div class="detail-extralink">
                                             <div class="detail-qty border radius">
-                                                <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
-                                                <span class="qty-val">1</span>
-                                                <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                                <a href="#" onclick="qtydown()" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                                                <span class="qty-val" id="productQty">1</span>
+                                                <a href="#" onclick="qtyup()" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
                                             </div>
                                             <div class="product-extra-link2">
-                                                <button type="submit" class="button button-add-to-cart">Add to cart</button>
+                                                <button  onclick="addToCart('<%=product._id%>','<%=product.price%>')" class="button button-add-to-cart">Add to cart</button>
                                                 <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
                                                 <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                             </div>
@@ -625,5 +598,80 @@
             </div>
         </section>
     </main>
+    <script>
+
+        // ////////////////////////////////// Product Zoom /////////////////////////////
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('image-container')
+            const mainImage = document.getElementById('main-image');
+            const thumbnails = document.querySelectorAll('.thumbnail img');
     
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', () => {
+                    const newSrc = thumbnail.getAttribute('data-full');
+                    mainImage.setAttribute('src', newSrc);
+                });
+            });
+            container.addEventListener('mousemove',(e)=>{
+                const x = e.clientX - e.target.offsetLeft
+                const y = e.clientY - e.target.offsetTop
+                console.log(x,y)
+                mainImage.style.transformOrigin= `${x}px ${y}px`
+                mainImage.style.transform = "scale(2)"
+
+       })
+
+       container.addEventListener('mouseleave',(e)=>{
+        mainImage.style.transformOrigin= "center"
+                mainImage.style.transform = "scale(1)"
+       })
+        });
+     /////////////////////// CHANGE QUANTITY ///////////////////////
+     const qtyup = ()=>{
+        const qtyValue = document.getElementById('productQty')
+        const qty = parseInt(qtyValue.textContent,10)
+        if(qty < 5){
+            qtyValue.textContent =qty+1
+        }
+     }
+     const qtydown = ()=>{
+        const qtyValue = document.getElementById('productQty')
+        const qty = parseInt(qtyValue.textContent,10)
+        if(qty > 1){
+            qtyValue.textContent =qty-1
+        }
+    }
+
+
+      /////////////////////////////// ADD TO CART //////////////////////////////
+      
+      const addToCart = async(productid,productPrice)=>{
+        const productQty = document.getElementById('productQty').textContent
+        try {
+
+            const response = await fetch(`/cart/addtoCart`,{
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    },
+                body: JSON.stringify({productid ,productPrice,productQty})
+            })
+           const data = await response.json()
+        
+        if (response.ok) {
+            window.location.reload()
+        } else if (data.redirect) {
+            window.location.href = data.redirectUrl
+        } else {
+            alert(data.message || "An error occurred")
+        }
+        } catch (error) {
+            console.log(error)
+        }
+      }
+
+    
+
+    </script>
    <%-include('../layoutUser/footer.ejs') %>

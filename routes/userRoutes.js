@@ -17,7 +17,7 @@ userRoute.use(isLoggedIn)
 // userRoute.use(breadcrumb)
 
 userRoute.get("/",clearCache,userControl.loadHome)
-userRoute.get("/home",clearCache,userStatus,userControl.loadHome)
+userRoute.get("/home",clearCache,userControl.loadHome)
 userRoute.get("/signup",clearCache,userControl.loadSignup)
 userRoute.post("/signup",userControl.postSignup)
 userRoute.get("/login",clearCache,userControl.loadLogin)
@@ -39,6 +39,10 @@ userRoute.get('/shop/sort-low-to-high',clearCache,userControl.shopLowToHigh)
 userRoute.get('/shop/sort-high-to-low',clearCache,userControl.shopHighToLow)
 userRoute.get('/shop/sort-asc',clearCache,userControl.shopAscending)
 userRoute.get('/shop/sort-des',clearCache,userControl.shopDescending)
+
+userRoute.get('/cart',userControl.viewCart)
+userRoute.post('/cart/addtoCart',userControl.addtoCart)
+
 
 module.exports = userRoute;
  

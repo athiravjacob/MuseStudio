@@ -8,6 +8,7 @@ const productModel = require('../models/productModel')
 const {sendEMail}=require('../utils/mail')
 const {generateOTP}= require('../utils/otpGenerator')
 const categoryModel = require('../models/categoryModel')
+const cartModel = require('../models/cartModel')
 
 
 //*****************Load HomePage
@@ -122,7 +123,6 @@ const postVerifyOTP = async(req, res)=>{
     try {
         const {otpCode1,otpCode2,otpCode3,otpCode4} = req.body
         const enteredOTP =`${otpCode1}${otpCode2}${otpCode3}${otpCode4}`
-        
         if(!req.session.tempUser){
             req.flash("error_msg","Session Expired .Signup again")
             return res.redirect('/signup')
@@ -137,7 +137,6 @@ const postVerifyOTP = async(req, res)=>{
             console.log("inside expiry")
             req.flash("error_msg","OOPS! Code is valid only for 2 mins.Try resending the code")
             return res.redirect('/verifyOTP')
-            
         }
 
         // checking enered otp and otp stored in session match
@@ -211,7 +210,7 @@ const productDetails = async(req,res)=>{
         const relatedProducts = await productModel.find({category :categoryId})
         res.render("productDetails",{product,relatedProducts})
     } catch (error) {
-        
+        console.log(error)
     }
 }
 
@@ -245,9 +244,7 @@ const shop = async(req,res)=>{
 const shopByCategory = async(req,res)=>{
     try {
         const id = req.params.id
-
         const products =await productModel.find({category:id}).populate('category')
-    
         res.render("shop",{products})
     } catch (error) {
         console.log(error)
@@ -288,6 +285,62 @@ const shopDescending = async(req,res)=>{
     }
 }
 
+const viewCart = async(req,res)=>{
+    try {
+        const user = req.user
+        console.log(user.id)
+        const cart = await cartModel.findOne({userId :user.id}).populate('items.productId')
+        console.log(cart)
+        res.render("cart",{cart})
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const addtoCart = async(req,res)=>{
+    try {
+        const user = req.user
+        if(!user){
+            console.log("No user")
+            req.flash("error_msg","Please login to add products to cart")
+            return res.status(401).json({ 
+                redirect: true, 
+                redirectUrl: "/login",
+                message: "Please login to add products to cart"
+            })
+        } 
+        const {productid,productQty,productPrice} = req.body
+        
+        console.log(productPrice)
+        const userId = user._id
+        let cart = await cartModel.findOne({userId}) 
+        if(!cart){
+             cart = new cartModel({userId,items:{
+                productId : productid,
+                price:productPrice,
+                quantity :productQty
+             }})
+        }
+
+        const productIndex = cart.items.findIndex(item =>item.productId.toString() === productid)
+        if(productIndex > -1){
+            cart.items[productIndex].quantity +=1
+        }else{
+            cart.items.push({
+                productId : productid,
+                price:productPrice,
+                quantity :productQty
+            })
+        }
+
+        const addedtocart =await cart.save()
+        if(addedtocart) console.log("added")
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 module.exports = {
     loadHome,
     loadSignup,
@@ -298,13 +351,14 @@ module.exports = {
     postVerifyOTP,
     resendOTP,
     productDetails,
-    // accountBlocked,
     shop,
     shopByCategory,
     shopLowToHigh,
     shopHighToLow,
     shopAscending,
-    shopDescending
+    shopDescending,
+    viewCart,
+    addtoCart
    
 }
 
