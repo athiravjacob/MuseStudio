@@ -5,7 +5,7 @@ const adminModel = require('../models/adminModel')
 require('dotenv').config()
 
 
-//Load Login page
+// **********************Load Login page
 const loadLogin = async (req,res)=>{
   try {
     res.render('adminLogin')
@@ -15,7 +15,7 @@ const loadLogin = async (req,res)=>{
   }
 
 }
-
+//****************** Verify Admin
 const verifyAdmin = async (req, res)=>{
   try {
     const {adminId ,password} = req.body
@@ -36,6 +36,7 @@ const verifyAdmin = async (req, res)=>{
     console.log(error)
   }
 }
+// ************************Dashboard
 const loadDashboard = async (req, res) => {
     try {
       res.render("dashboard");
@@ -44,6 +45,7 @@ const loadDashboard = async (req, res) => {
       console.log(error.message);
     }
   };
+  // ************************** View Customers
   const loadCustomers = async (req, res) => {
     try {
       const customer = await userModel.find()
@@ -52,16 +54,17 @@ const loadDashboard = async (req, res) => {
       console.log(error.message);
     }
   };
+  // ************************** Block Customer
 const blockCustomer = async(req,res) =>{
   try {
     const id = req.params.id
-    console.log(id)
     await userModel.findByIdAndUpdate(id,{blocked:true},{new:true})
     res.redirect('/admin/customers')
   } catch (error) {
     
   }
 }
+//  ************************** Unblock Customer
 const unblockCustomer = async(req,res) =>{
   try {
     const id = req.params.id
@@ -74,6 +77,7 @@ const unblockCustomer = async(req,res) =>{
   }
 }
 
+// ******************** Category
 const loadCategory = async(req,res)=>{
   try {
     const category = await categoryModel.find()
@@ -84,7 +88,7 @@ const loadCategory = async(req,res)=>{
   }
 }
 
-
+// *************************** Add Category
 const addCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -114,7 +118,7 @@ const addCategory = async (req, res) => {
     console.log(error.message);
   }
 }
-
+// ********************* Edit Category
 const editCategory = async(req,res)=>{
   try {
    const {name,description }= req.body
@@ -134,7 +138,7 @@ const editCategory = async(req,res)=>{
   }
 }
 
-
+// ********************* Delete and restore Category
 const deleteRestoreCategory = async(req,res)=>{
   try {
     const id = req.params.id
@@ -183,7 +187,7 @@ const addBrand= async(req,res)=>{
   }
 }
 
-
+// *********************** load Products
 const loadProducts = async(req,res)=>{
   try {
     const product = await productModel.find()
@@ -197,6 +201,8 @@ const loadProducts = async(req,res)=>{
     console.log(error)
   }
 }
+
+// Add Product page
 const loadaddProduct = async(req,res)=>{
   try {
     const category = await categoryModel.find()
@@ -206,7 +212,7 @@ const loadaddProduct = async(req,res)=>{
   }
 }
 
-
+// ******************* Add new Product
 const addProduct = async(req,res)=>{
   try {
     console.log(req.body)
@@ -237,6 +243,7 @@ const addProduct = async(req,res)=>{
     res.status(500).json({ success: false });
   }
 }
+// ******************* View Edit Product page
 const loadeditProduct = async(req,res)=>{
   try {
     const id = req.params.id
@@ -246,6 +253,7 @@ const loadeditProduct = async(req,res)=>{
     
   }
 }
+// *************************** Edit Product Details
 const editProduct = async(req,res)=>{
   try {
     const id = req.params.id
@@ -270,7 +278,7 @@ const editProduct = async(req,res)=>{
     res.status(500).send({message:"network error"})
   }
 }
-//*************************** remove image 
+//*************************** Remove Image in edit product
 const removeImage = async(req,res)=>{
   try {
     const id = req.params.id
@@ -286,7 +294,7 @@ const removeImage = async(req,res)=>{
     console.log(error)
   }
 }
-
+ // *************************** add new image in edit product
 const saveProductimage = async(req,res)=>{
   try {
     const id = req.params.id
@@ -336,7 +344,7 @@ const deleteRestoreProduct = async(req,res)=>{
   }
  
 }
-
+// Admin logout
 const logout = async(req,res)=>{
   try {
       req.session.destroy();

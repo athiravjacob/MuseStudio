@@ -42,6 +42,8 @@ userRoute.get('/shop/sort-des',clearCache,userControl.shopDescending)
 
 userRoute.get('/cart',userControl.viewCart)
 userRoute.post('/cart/addtoCart',userControl.addtoCart)
+userRoute.delete('/cart/deleteCart',userControl.deleteCart)
+userRoute.patch('/cart/removeItem/:id',userControl.removeItem)
 
 
 module.exports = userRoute;

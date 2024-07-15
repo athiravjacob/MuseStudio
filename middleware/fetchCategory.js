@@ -11,4 +11,5 @@ const fetchCategory = async(req,res,next)=>{
         next(error)
     }
 }
+
 module.exports = fetchCategory

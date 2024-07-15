@@ -14,7 +14,7 @@ const cartModel = require('../models/cartModel')
 //*****************Load HomePage
 const loadHome = async(req,res)=>{
     try {
-        const products = await productModel.find().populate('category').exec();
+        const products = await productModel.find({status:true}).populate('category').exec();
         res.status(200).render("home",{products})
     } catch (error) {
         console.error(`Error rendering home page: ${error.message}`);    
@@ -171,7 +171,7 @@ const postVerifyOTP = async(req, res)=>{
     }
 }
 
-//*********************Resend OTP
+//********************* Resend OTP
 const resendOTP = async(req,res)=>{
     try {
         if(!req.session.tempUser){
@@ -202,6 +202,8 @@ const resendOTP = async(req,res)=>{
 
 }
 
+// ********************** Product Details
+
 const productDetails = async(req,res)=>{
     try {
         let id = req.params.id
@@ -222,11 +224,13 @@ const productDetails = async(req,res)=>{
 //     }
 // }
 
+
+// ********************************* Shop Page
 const shop = async(req,res)=>{
     try {
         const search = req.query.search
         if(search && search !==" "){
-            const products = await productModel.find({
+            const products = await productModel.find({status:true,
                 $or: [
                     {name: {$regex:search ,$options:'i'}},
                     {description: {$regex:search ,$options:'i'}},
@@ -235,12 +239,14 @@ const shop = async(req,res)=>{
             })
             res.render("shop",{products})
         }
-        const products = await productModel.find().populate('category')
+        const products = await productModel.find({status:true}).populate('category')
         res.render("shop",{products})
     } catch (error) {
         
     }
 }
+
+// *************************** Shop By Category
 const shopByCategory = async(req,res)=>{
     try {
         const id = req.params.id
@@ -250,6 +256,8 @@ const shopByCategory = async(req,res)=>{
         console.log(error)
     }
 }
+
+// ********************************* Sort Low to high
 const shopLowToHigh = async(req,res)=>{
     try {
         const products = await productModel.find().sort({price:1})
@@ -258,6 +266,7 @@ const shopLowToHigh = async(req,res)=>{
         
     }
 }
+//************************************* Sort High to Low
 const shopHighToLow = async(req,res)=>{
     try {
         const products = await productModel.find().sort({price:-1})
@@ -267,6 +276,8 @@ const shopHighToLow = async(req,res)=>{
         
     }
 }
+
+//*********************************  Sort Ascending 
 const shopAscending = async(req,res)=>{
     try {
         const products = await productModel.find().sort({name:1})
@@ -275,6 +286,8 @@ const shopAscending = async(req,res)=>{
         
     }
 }
+
+// ***********************Sort Descending
 const shopDescending = async(req,res)=>{
     try {
         const products = await productModel.find().sort({name:-1})
@@ -285,18 +298,20 @@ const shopDescending = async(req,res)=>{
     }
 }
 
+// **************************** View Cart
+
 const viewCart = async(req,res)=>{
     try {
         const user = req.user
-        console.log(user.id)
         const cart = await cartModel.findOne({userId :user.id}).populate('items.productId')
-        console.log(cart)
-        res.render("cart",{cart})
+        console.log("fetch is working")
+        res.status(200).render("cart",{cart})
     } catch (error) {
         console.log(error)
     }
 }
 
+//************************************* Add to cart
 const addtoCart = async(req,res)=>{
     try {
         const user = req.user
@@ -310,16 +325,11 @@ const addtoCart = async(req,res)=>{
             })
         } 
         const {productid,productQty,productPrice} = req.body
-        
-        console.log(productPrice)
+
         const userId = user._id
         let cart = await cartModel.findOne({userId}) 
         if(!cart){
-             cart = new cartModel({userId,items:{
-                productId : productid,
-                price:productPrice,
-                quantity :productQty
-             }})
+             cart = new cartModel({userId,items:[]})
         }
 
         const productIndex = cart.items.findIndex(item =>item.productId.toString() === productid)
@@ -334,8 +344,41 @@ const addtoCart = async(req,res)=>{
         }
 
         const addedtocart =await cart.save()
-        if(addedtocart) console.log("added")
+    } catch (error) {
+        console.log(error)
+    }
+}
 
+// ****************************** Delete Cart
+
+const deleteCart = async(req,res)=>{
+    try {
+        const user = req.user
+        if(!user) res.status(400).send("Please Login.NO user foung")
+        const cart = await cartModel.findOne({userId : user.id})
+        if(!cart){
+           res.status(400).send("Error deleting cart")
+
+        }
+        const deleted = await cartModel.deleteOne({userId:user.id})
+        if(deleted)
+        {
+            res.status(200).send("cart deleted successfully")
+        }
+    } catch (error) {
+     console.log(error)   
+    }
+}
+// *************************** Remove an item from cart
+const removeItem = async(req,res)=>{
+    try {
+        const user = req.user
+        const productId = req.params.id
+        if(!user) res.status(400).send("No user found.Please Login")
+        const cart = await cartModel.findOne({userId : user.id})
+        cart.items.pull({productId})
+        const removed = await cart.save()
+        if(removed) res.status(200).send("item removed")
     } catch (error) {
         console.log(error)
     }
@@ -358,7 +401,9 @@ module.exports = {
     shopAscending,
     shopDescending,
     viewCart,
-    addtoCart
+    addtoCart,
+    deleteCart,
+    removeItem
    
 }
 

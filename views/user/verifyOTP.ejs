@@ -22,7 +22,7 @@
 
                         <button type="submit" id="verify" class="btn btn-primary btn-block">Verify OTP</button>
                         
-                        <a class="btn btn-primary " style="display: none;" id="resend" href="/resendOTP">Resend OTP</a>
+                        <a class="btn btn-primary "  id="resend" href="/resendOTP">Resend OTP</a>
 
                     </form>
             </div>
@@ -31,28 +31,28 @@
 
 </section>
 <script>
-    const timer = document.getElementById('timer')
-    const verifyButton = document.getElementById('verify')
-    const resendButton = document.getElementById('resend')
-    let timeLeft = 120;
-    function updateTimer(){
+    // const timer = document.getElementById('timer')
+    // const verifyButton = document.getElementById('verify')
+    // const resendButton = document.getElementById('resend')
+    // let timeLeft = 10;
+    // function updateTimer(){
        
-    let minutes =Math.floor(timeLeft/60)
-    let seconds = timeLeft%60
+    // let minutes =Math.floor(timeLeft/60)
+    // let seconds = timeLeft%60
 
-    seconds= seconds<10?'0'+seconds:seconds
-    timer.textContent = `${minutes}:${seconds}` 
-    if(timeLeft >0){
-        timeLeft--
-        setTimeout(updateTimer,1000)
-    }else{
-        resendButton.style.display='block'
-        verifyButton.style.display ='none'
-        timer.textContent="Times up"
-    }
-    }
+    // seconds= seconds<10?'0'+seconds:seconds
+    // timer.textContent = `${minutes}:${seconds}` 
+    // if(timeLeft >0){
+    //     timeLeft--
+    //     setTimeout(updateTimer,1000)
+    // }else{
+    //     resendButton.style.display='block'
+    //     verifyButton.style.display ='none'
+    //     timer.textContent="Times up"
+    // }
+    // }
 
-    updateTimer()
+    // updateTimer()
 
 </script>
 <%- include('../layoutUser/footer.ejs') %>
