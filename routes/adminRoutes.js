@@ -38,6 +38,9 @@ adminRoute.put('/products/delete/:id',adminController.deleteRestoreProduct)
 adminRoute.get('/brand',authenticateAdmin,clearCache,adminController.loadBrand)
 adminRoute.post('/brand/addBrand',upload.single('brand-image'),adminController.addBrand)
 
+adminRoute.get('/orders',adminController.viewOrders)
+adminRoute.patch('/orders/editStatus',adminController.editOrderStatus)
+
 adminRoute.get('/logout',authenticateAdmin,clearCache,adminController.logout)
 
 

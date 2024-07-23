@@ -1,0 +1,105 @@
+<%-include('../layoutUser/header.ejs') %>
+    <main class="main-wrap">
+        <%-include('../layoutUser/navigation.ejs') %>
+        <section class="content-main ">
+            <div class="card ">
+                <div class="card-body">
+                    <div class="row">
+                        <aside class="col-lg-2 border-end">
+                            <nav class="nav nav-pills flex-lg-column mb-4">
+                                <a class="nav-link active" aria-current="page" href="/profile">Profile Details</a>
+                                <a class="nav-link" href="/profile/address">Manage Address</a>
+                                <a class="nav-link" href="#">Orders</a>
+                                <a class="nav-link" href="#">WishList</a>
+                                <a class="nav-link" href="#">Change Password</a>
+        
+                            </nav>
+                        </aside>
+                        <div class="col-lg-9 ">
+                            <section class="content-body p-xl-4">
+                                <% if(user) {%>
+                                    <form id="user-profile-form">
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label class="form-label">Name</label>
+                                                <input class="form-control" name="username" type="text"
+                                                    value="<%=user.username %>" placeholder="" required>
+                                            </div>
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Email</label>
+                                                <input class="form-control" name="email" type="email" value="<%=user.email %>"
+                                                    placeholder="example@mail.com" disabled>
+                                            </div>
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Phone</label>
+                                                <input class="form-control" type="tel" name="phone" placeholder=""
+                                                    value="<%=user.phone %>" >
+                                            </div>
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Birthday</label>
+                                                <input class="form-control" type="date" value="<%=user.DOB?new Date(user.DOB).toISOString().substring(0, 10) :'mm/dd/yyyy'%>" name="dob" required>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                        <div class="mt-5 ">
+                                            <button class="btn btn-primary" onclick="updateProfile('<%=user.id%>')">Save
+                                                changes</button>
+                                        </div>
+                                </form>      
+      
+                            </section>
+                        </div>
+                    </div>
+        
+                </div>
+            </div>
+        </section>
+        
+        <script>
+             const updateProfile = async(id)=>{
+                const form = document.getElementById('user-profile-form')
+                try {
+                    const data = new FormData(form)
+                    let info = Object.fromEntries(data)      
+                    console.log(info)            
+                    const response = await fetch(`/profile/saveChanges/${id}`,{
+                        method:'PATCH',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body:JSON.stringify(info)
+                    })
+                    if(response.ok) window.location.reload()
+                } catch (error) {
+                    
+                }
+     
+            }
+           
+
+           
+        
+            
+        
+            document.getElementById('user-profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would typically send the form data to your server
+                alert('Profile updated successfully!');
+            });
+        
+            document.getElementById('cancel').addEventListener('click', function() {
+                if (confirm('Are you sure you want to cancel? All changes will be lost.')) {
+                    window.location.reload();
+                }
+            });
+
+            function formatDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                const year = date.getFullYear();
+
+                return `${day}/${month}/${year}`;
+            }
+           
+        </script>
+  <%-include('../layoutUser/footer.ejs') %>

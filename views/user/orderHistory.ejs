@@ -1,0 +1,75 @@
+<%-include('../layoutUser/header.ejs') %>
+    <%-include('../layoutUser/navigation.ejs') %>
+    <%  if(orders && orders.length >0) {%>
+    <div class="container mt-5">
+        <h2 class="mb-4">Order Details</h2>
+
+        <!-- Recent Orders Section -->
+        
+           
+        <div class="card mb-4">
+            <div class="card-header">
+                Recent Orders
+            </div>
+           
+            <div class="card-body">
+                <div class="table-responsive">
+                   
+                    <table class="table table-borderless">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Payment Status</th>
+                                <th>Order Status</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orders.forEach(order => { %>
+                            <tr style="border-bottom: 1px solid #dee2e6; margin-bottom: 10px;">
+                                <td style="padding: 10px;">
+                                    <p style="font-weight: bold; color: #007bff;"><%= order._id %></p>
+                                    <ul style="padding-left: 20px; list-style-type: disc;">
+                                        <% order.cart.forEach(product => { %>
+                                        <li><%= product.productname %> <span class="text-primary">  x  <%= product.quantity %></span></li>
+                                        <% }) %>
+                                    </ul>
+                                </td>
+                                <td style="padding: 10px;"><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                <td style="padding: 10px;"><%= order.paymentStatus %></td>
+                                <td style="padding: 10px;"><%= order.orderStatus %></td>
+
+                                <td style="padding: 10px;">$<%= order.totalPrice.toFixed(2) %></td>
+                                <td style="padding: 10px;">
+                                    <% if(order.orderStatus === 'processing') { %>
+                                    <button class="btn btn-danger btn-sm" >Cancel Order</button>
+                                    <% } else { %>
+                                    <span ><%= order.orderStatus %></span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                    
+                    
+                   
+                </div>
+            </div>
+        </div>
+        <% }else{ %>
+            <p>You haven't placed any orders yet</p>
+            <button class="btn btn-primary" href="/shop">Continue Shopping</button>
+            <% } %>
+
+       
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

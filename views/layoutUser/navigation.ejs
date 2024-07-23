@@ -15,8 +15,6 @@
                             </li>
                             <!-- <li><a href="shop-grid-right.html">Brands<i class="fi-rs-angle-down"></i></a>
                                 <ul class="sub-menu">
-                                    
-                                    
                                 </ul> -->
                             </li>
                             <li><a href="#">Categories<i class="fi-rs-angle-down"></i></a>
@@ -28,11 +26,8 @@
                                        <%   } %>
                                    <% }))} %>
                                             
-                                    </ul>
-                                    </li>
-                                    
-                            
-                      
+                                </ul>
+                                </li>
                     </nav>
                 </div>
                 <div class="header-action-right">
@@ -53,8 +48,8 @@
                                 <% if(userAuthenticated){ %>
                                     <li>Hy, <%=user.username %></li>
                                     <br>
-                                    <li><a href="/signup">Profile </a></li>
-                                    <li><a href="/cart">cart</a></li>
+                                    <li><a href="/profile">Profile </a></li>
+                                    <li><a href="/orders">My Orders</a></li>
                                     <li><a href="/logout">Logout</a></li>
                                 <%}else{%>
                                 <li><a href="/signup">Signup </a></li>
@@ -72,9 +67,7 @@
                         <div class="header-action-icon-2">
                             <a class="mini-cart-icon" href="/cart">
                                 <img alt="Evara" src="/user_assets/imgs/theme/icons/icon-cart.svg">
-                                
                             </a>
-                            
                         </div>
                        
                         <% } %>

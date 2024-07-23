@@ -98,7 +98,13 @@
                             <a href="#" class="img-wrap"> <img src="/<%=product[i].images[0] %>" alt="Product"> </a>
                             <div class="info-wrap">
                                 <a href="#" class="title text-truncate"><%=product[i].name %></a>
-                                <div class="price mb-2"><%=product[i].price %></div> <!-- price.// -->
+                                <div class="price mb-2"> $<%=product[i].price %></div> <!-- price.// -->
+                                <% if(product[i].quantity > 0){%>
+                                    <div class="price mb-2"><%=product[i].quantity %> in stock</div> 
+                                <% }else{ %>
+                                    <div class="price mb-2 text-danger">sold out</div> 
+
+                                   <% } %> 
                                 <a href="/admin/products/edit/<%=product[i]._id %>"class="btn btn-sm font-sm rounded btn-brand">
                                     <i class="material-icons md-edit"></i> Edit
                                 </a>

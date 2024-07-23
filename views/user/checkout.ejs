@@ -166,228 +166,246 @@
                 <div class="breadcrumb">
                     <a href="index.html" rel="nofollow">Home</a>
                     <span></span> Shop
-                    <span></span> Your Cart
+                    <span></span> Checkout
                 </div>
             </div>
         </div>
         <section class="mt-50 mb-50">
             <div class="container">
                 <div class="row">
-                    <% if(cart && cart.items.length >0){ %>
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            <table class="table shopping-summery text-center clean">
-                                <thead>
-                                    <tr class="main-heading">
-                                        <th scope="col">Image</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Price</th>
-                                        <th scope="col">Quantity</th>
-                                        <th scope="col">Subtotal</th>
-                                        <th scope="col">Remove</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if(cart && cart.items.length > 0){ %>
-                                        <% cart.items.forEach(item =>{%>
-                                        <tr>
-                                            <td class="image product-thumbnail"><img src="/<%=item.productId.images[0] %>" alt="#"></td>
-                                            <td class="product-des product-name">
-                                                <h5 class="product-name"><a href="shop-product-right.html"><%=item.productId.name %></a></h5>
-                                                
-                                            </td>
-                                            <td class="price" data-title="Price"><span><%=item.price %></span></td>
-                                            <td class="text-center" data-title="Stock">
-                                                <div class="detail-qty border radius  m-auto">
-                                                    <a href="#" onclick="qtydown('<%=item.productId._id%>')" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
-                                                    <span class="qty-val" id="qtyValue"><%=item.quantity %></span>
-                                                    <a href="#" onclick="qtyup('<%=item.productId._id %>','<%=item.productId.quantity%>')" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
-                                                </div>
-                                            </td>
-                                            <td class="text-right" data-title="Cart">
-                                                <span><%=item.price * item.quantity %> </span>
-                                            </td>
-                                            <td class="action" data-title="Remove"><a href="#"   class="text-muted"><i class="fi-rs-trash" onclick="removeItem('<%=item.productId._id%>')"></i></a></td>
-                                        </tr>
-                                    <% }) %>
-                                    <%} %>
-                                    
-                                   
-                                   
-                                    <tr>
-                                        <td colspan="6" class="text-end">
-                                            <a href="#" onclick="clearCart()" class="text-muted"> <i class="fi-rs-cross-small"></i> Clear Cart</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="col-md-6 border rounded p-3">
+                        <div class="mb-25">
+                            <h4>Billing Details</h4>
                         </div>
-                        <div class="cart-action text-end">
-                            <a class="btn " href="/shop"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
+        
+                        <div class="form-group">
+                            <p>Name : <%=user.username %></p>                       
+                            <p>Phone : <%=user.phone %></p>                          
+                            <p>Email : <%=user.email %></p>
                         </div>
-                        <div class="divider center_icon mt-50 mb-50"><i class="fi-rs-fingerprint"></i></div>
-                        <div class="row mb-50">
-                            <div class="col-lg-6 col-md-12">
-                                <div class="heading_s1 mb-3">
-                                    <h4>Calculate Shipping</h4>
-                                </div>
-                                <p class="mt-15 mb-30">Flat rate: <span class="font-xl text-brand fw-900">5%</span></p>
-                                <form class="field_form shipping_calculator">
-                                   
-                                    <div class="form-row row">
-                                        <div class="form-group col-lg-6">
-                                            <input required="required" placeholder="State / Country" name="name" type="text">
-                                        </div>
-                                        <div class="form-group col-lg-6">
-                                            <input required="required" placeholder="PostCode / ZIP" name="name" type="text">
-                                        </div>
-                                    </div>
-                                    <div class="form-row">
-                                        <div class="form-group col-lg-12">
-                                            <button class="btn  btn-sm"><i class="fi-rs-shuffle mr-10"></i>Update</button>
-                                        </div>
-                                    </div>
-                                </form>
-                                <div class="mb-30 mt-50">
-                                    <div class="heading_s1 mb-3">
-                                        <h4>Apply Coupon</h4>
-                                    </div>
-                                    <div class="total-amount">
-                                        <div class="left">
-                                            <div class="coupon">
-                                                <form action="#" target="_blank">
-                                                    <div class="form-row row justify-content-center">
-                                                        <div class="form-group col-lg-6">
-                                                            <input class="font-medium" name="Coupon" placeholder="Enter Your Coupon">
-                                                        </div>
-                                                        <div class="form-group col-lg-6">
-                                                            <button class="btn  btn-sm"><i class="fi-rs-label mr-10"></i>Apply</button>
-                                                        </div>
+                        <% if(user.address.length !=0) {%>
+                        <div>
+                            <div class="d-flex justify-content-between">
+                                <h6 id="selectedOptionText" class="my-2">Delivery Address</h6>
+                                <% if(user.address.length >1) {%>
+                                <a data-bs-toggle="collapse" data-target="#collapseAddress" href="#collapseAddress">change Address</a>
+                                    <% } %>
+                            </div>
+                            <div class="my-1">
+                                <% if(user.address) {%>
+                                    <% user.address.forEach(addr=>{ %>
+                                        <% if(addr.isDefault){ %>
+                                            <p id="addr"> <%= addr.address%></p>
+                                            <p id="cityState"><%=addr.city %>,<%=addr.state %> - <%=addr.pincode %></p>  
+                                            <%}}) %>
+                                    <% }%>
+                            </div>
+                            <div class="collapse in my-3" id="collapseAddress">
+                                <% user.address.forEach((addr, index)=> { %>
+                                    <div id="container<%=index %>" class="address-container mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex">
+                                                    <div >
+                                                        <p class="card-text mb-1"><%= addr.address %></p>
+                                                        <p class="card-text mb-0"> <%= addr.city %>, <%= addr.state %> - <%= addr.pincode %></p>
+                                                        <button class="btn btn-primary my-1" data-bs-toggle="collapse" data-target="#collapseAddress"                                    
+                                                        href="#collapseAddress" onclick="changeSelectedAddress('<%=addr._id %>')" >select</button>
                                                     </div>
-                                                </form>
+
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                    <% }) %>
                             </div>
-                            <div class="col-lg-6 col-md-12">
-                                <div class="border p-md-4 p-30 border-radius cart-totals">
-                                    <div class="heading_s1 mb-3">
-                                        <h4>Cart Totals</h4>
+                        </div>
+                        <% } %>
+                        <!-- Button trigger modal -->
+                        
+                        <% if( user.address.length ===0  ){ %>
+                        <label class="my-5 fw-bolder" data-bs-toggle="collapse" data-target="#collapsediffAddress" href="#collapsediffAddress">Add your Shipping address </label>
+                        <% }else{ %>
+                            <label class="my-5" data-bs-toggle="collapse" data-target="#collapsediffAddress" href="#collapsediffAddress">Ship to
+                                a different address? </label>
+                        <% } %>
+                        <div id="collapsediffAddress" class="collapse in">
+                            <form id="form-diff-address">
+                                <input type="text" name="address" required="" placeholder="Address *" class="form-control mb-3">
+                                <input required="" type="text" name="city" placeholder="City / Town *"
+                                    class="form-control mb-3">
+                                <input required="" type="text" name="state" placeholder="State  *" class="form-control mb-3">
+                                <input required="" type="text" name="zipcode" placeholder="PIN CODE *"
+                                    class="form-control mb-3">
+                            </form>
+                            <button onclick="diffAddress('<%=user.id%>')" class="btn btn-primary mb-50 ">Save</button>
+                        </div>
+                        <div class="my-20">
+                                        <h5>Additional information</h5>
                                     </div>
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <tbody>
-                                                <% if(cart.items.length > 0){ %>
+                                    <div class="form-group mb-30">
+                                        <textarea rows="5" placeholder="Order notes"></textarea>
+                                    </div>
+        
+                    </div>
 
+
+                    <div class="col-md-6">
+                        <div class="order_review">
+                            <div class="mb-20">
+                                <h4>Your Orders</h4>
+                            </div>
+                            <div class="table-responsive order_table text-center">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">Product</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <% if(cart && cart.items.length>0){ %>
+        
+                                        <tbody>
+                                            <% cart.items.forEach(item=>{ %>
                                                 <tr>
-                                                    <td class="cart_total_label">Cart Subtotal</td>
-                                                        
-                                                    <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$<%= cart.totalPrice %></span></td>
-                                               
+                                                    <td class="image product-thumbnail"><img
+                                                            src="/<%=item.productId.images[0] %>" alt="#"></td>
+                                                    <td>
+                                                        <h5><a href="shop-product-full.html">
+                                                                <%=item.productId.name %>
+                                                            </a></h5> <span class="product-qty">x <%=item.quantity %></span>
+                                                    </td>
+                                                    <td>
+                                                        <%=item.price %>
+                                                    </td>
+                                                    <td>
+                                                        <%=item.price * item.quantity%>
+                                                    </td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="cart_total_label">Shipping</td>
-                                                    <td class="cart_total_amount"> <i class="ti-gift mr-5"></i> Free Shipping</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cart_total_label">Total</td>
-                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= cart.totalPrice %></span></strong></td>
-                                                </tr>
-                                                <%} %>
-                                            </tbody>
-                                        </table>
+                                                <% }) %>
+        
+                                                    <tr>
+                                                        <th>SubTotal</th>
+                                                        <td class="product-subtotal" colspan="3">$                                                            <%=cart.totalPrice %>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Shipping</th>
+                                                        <td colspan="3"><em>Free Shipping</em></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Total</th>
+                                                        <td colspan="3" class="product-subtotal"><span
+                                                                class="font-xl text-brand fw-900">
+                                                                $ <%= cart.totalPrice %>
+                                                            </span></td>
+                                                    </tr>
+                                        </tbody>
+                                        <% } %>
+                                </table>
+                            </div>
+                            <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                            <div class="payment_method">
+                                <div class="mb-25">
+                                    <h5>Payment</h5>
+                                </div>
+                                <div class="payment_option">
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option"
+                                            id="exampleRadios3" value="COD" checked="">
+                                        <label class="form-check-label" for="exampleRadios3" data-bs-toggle="collapse"
+                                            data-target="#bankTranfer" >Cash On Delivery</label>
+        
                                     </div>
-                                    <a href="/checkout" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option"
+                                            id="exampleRadios4" value="bank" checked="">
+                                        <label class="form-check-label" for="exampleRadios4" data-bs-toggle="collapse"
+                                            data-target="#checkPayment" value="checkPayment">Check Payment</label>
+        
+                                    </div>
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option"
+                                            id="exampleRadios5" value="UPI" checked="">
+                                        <label class="form-check-label" for="exampleRadios5" data-bs-toggle="collapse"
+                                            data-target="#paypal" value="paypal">Paypal</label>
+        
+                                    </div>
+                                    <a href="#" onclick="placeOrder('<%=cart._id%>')" class="btn btn-fill-out btn-block mt-30">Place Order</a>
+        
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <% }else{ %>
-                        <div class="col-12">
-                            <h3 class="text-center text-brand fw-bolder "> Your cart is empty</h3>
-
-                            <a href="/shop" class="btn "><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
-
-                        </div>
-                    <%} %>
                 </div>
             </div>
         </section>
     </main>
     <script>
-        // ********************************** Clear Cart
-        const clearCart = async()=>{
+        const changeSelectedAddress = async(addressId)=>{
             try {
-                const response = await fetch(`/cart/deleteCart`,{
-                    method:'DELETE',
-                    headers :{
-                        'content-Type' : "application/json"
-                    }
+                const response = await fetch(`/checkout/changeAddress`,{
+                    method:'PATCH',
+                    headers:{
+                        'Content-Type':'application/json'
+                    },
+                    body :JSON.stringify({ addressId: addressId })
                 })
-                if(response.ok){
-                    window.location.reload()
-                }
+                if(response.ok) window.location.reload()
+            } catch (error) {
                 
-            } catch (error) {
-             console.log(error)   
             }
         }
+  
+         const diffAddress = async(id)=>{
+                const form = document.getElementById('form-diff-address')
+                try {
+                    const data = new FormData(form)
+                    let info = Object.fromEntries(data)   
+                    const response = await fetch(`/profile/addNewAddress/${id}`,{
+                        method:'PATCH',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body:JSON.stringify(info)
+                    })
+                   
 
-        // ********************************** Remove Item
-        const removeItem =async(productId)=>{
-            try {
-                const response = await fetch(`/cart/removeItem/${productId}`,{
-                    method :"PATCH",
-                    "Content-Type": "application/json"
+                    if(response.ok) {
+                        window.location.reload()
+                    }
+                } catch (error) {
+                    console.error(error)
+                }}
 
-                })
-                if(response.ok) window.location.reload()
-            } catch (error) {
-                console.log(error)
+    const placeOrder = async(cartId)=>{
+        try {
+            const selectedPaymentOption = document.querySelector('input[name="payment_option"]:checked').value;
+            const address = document.getElementById('addr').textContent
+            const cityState = document.getElementById('cityState').textContent
+            const fullAddress = address + " " +cityState
+            let orderDetails ={
+                cartId :cartId,
+                paymentOption :selectedPaymentOption,
+                deliveryAddress:fullAddress
             }
-        }
-        // *************************** change quantity 
-        const qtyup = async(id,stock)=>{
-           try {
-            const qtyValue = document.getElementById('qtyValue')
-            const qty = parseInt(qtyValue.textContent,10)
-            if(qty < 5 && stock >qty){
-                qtyValue.textContent =qty+1
-                const response = await fetch(`/cart/changeQty/${id}`,{
-                    method:'PATCH',
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify({qty:1})
-                })
-                if(response.ok) window.location.reload()
-            }else alert("Maximum quantity added ")
-           } catch (error) {
-            
-           }
 
-        }
-
-        const qtydown = async(id)=>{
-           try {
-            const qtyValue = document.getElementById('qtyValue')
-            const qty = parseInt(qtyValue.textContent,10)
-            if(qty >1){
-                qtyValue.textContent =qty-1
-                const response = await fetch(`/cart/ChangeQty/${id}`,{
-                    method:'PATCH',
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify({qty:-1})
-                })
-                if(response.ok) window.location.reload()
+            const response = await fetch('/placeOrder',{
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify(orderDetails)
+            })
+            if(response.ok) {
+                window.location.href = "/confirmOrder"
             }
-           } catch (error) {
-            
-           }
-
+        } catch (error) {
+console.log(error)
         }
+    }
+     
+      
     </script>
-   <%-include('../layoutUser/footer.ejs') %>
+ <%-include('../layoutUser/footer.ejs') %>

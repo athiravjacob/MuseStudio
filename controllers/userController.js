@@ -9,6 +9,8 @@ const {sendEMail}=require('../utils/mail')
 const {generateOTP}= require('../utils/otpGenerator')
 const categoryModel = require('../models/categoryModel')
 const cartModel = require('../models/cartModel')
+const orderModel = require('../models/orderModel')
+
 
 
 //*****************Load HomePage
@@ -201,6 +203,59 @@ const resendOTP = async(req,res)=>{
     }
 
 }
+// ************************User Profile Page
+const profile = async(req,res)=>{
+    try {
+        const user = req.user
+        res.render("profile",{user})
+    } catch (error) {
+        
+    }
+}
+// ******************************Show Address
+const showAddress = async(req,res) =>{
+    try {
+        res.render("address")
+    } catch (error) {
+        
+    }
+}
+// ************************* Save changes in profile
+const saveChanges = async(req,res)=>{
+    try {
+        const id = req.params.id
+        const {username,phone,dob} =req.body
+        const userProfile = await UserModel.findByIdAndUpdate({_id:id},{username,
+        DOB:dob,
+       phone
+        })
+        if(userProfile) res.status(200).send("updated")
+    } catch (error) {
+     console.log(error)   
+    }
+}
+// *********************** Add new address
+const newAddress = async(req,res)=>{
+    try {
+        const id = req.params.id
+        const {address,city,state,pincode} =req.body
+        const userProfile = await UserModel.findById({_id:id})
+        if(userProfile.address.length>=0){
+            userProfile.address.forEach(addr =>{
+                if(addr.isDefault) addr.isDefault = false
+            })
+        }
+        userProfile.address.push({ 
+            address,city,state,pincode,isDefault :true
+        })
+        const added = await userProfile.save()
+        console.log(userProfile.address)
+        
+        if(added) res.status(200).send("new address added")
+    } catch (error) {
+     console.log(error)    
+    }
+}
 
 // ********************** Product Details
 
@@ -384,6 +439,128 @@ const removeItem = async(req,res)=>{
     }
 }
 
+//* ************************ Change quantity of item
+const changeQty = async(req,res)=>{
+    try {
+        const user =req.user
+        const productId = req.params.id
+        const qtyChange = req.body.qty
+        console.log(qtyChange)
+        if(!user) res.status(400).send("No user found.plaese login")
+        const cart = await cartModel.findOne({userId :user.id})
+        const productIndex = cart.items.findIndex(item => item.productId.toString() === productId)
+        console.log(`product index of item ti inc :${productIndex}`)
+        if(productIndex < -1) res.status(400).send("Product Not found")
+        cart.items[productIndex].quantity +=qtyChange
+         const qtyUpdated = await cart.save()
+         if(qtyUpdated) res.status(200).send("qty increases")    
+        
+    } catch (error) {
+        
+    }
+}
+
+// ************************* Check Out
+const checkout = async(req,res)=>{
+    try {
+        const user = req.user
+        const cart = await cartModel.findOne({userId:user.id}).populate('items.productId')
+        if(!user) return res.render("home")
+        res.render("checkout",{cart})
+        
+       
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const checkoutAddress = async(req,res)=>{
+    try {
+        const userId = req.user.id
+        const addressId = req.body.addressId
+        const user = await UserModel.findById(userId)
+        user.address.forEach(addr =>{
+            if(addr.isDefault) addr.isDefault = false
+            if(addr._id.toString()===addressId)  addr.isDefault = true
+        })
+        const addrChanged = await user.save()
+        if(addrChanged) res.status(200).send("adress changed")
+        
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+const confirmOrder = async(req,res)=>{
+    try {
+        const orderDetails = await orderModel.findOne({_id:req.session.orderId})
+        res.render("orderConfirm",{orderDetails})
+    } catch (error) {
+        
+    }
+}
+
+
+ 
+ 
+const placeOrder = async(req,res)=>{
+    try {
+        const userId = req.user.id
+        const {cartId,paymentOption,deliveryAddress} = req.body
+        const cart = await cartModel.findById(cartId).populate('items.productId')
+        const products = cart.items.map(item => ({
+            productid:item.productId._id,
+            productname: item.productId.name,
+            price: item.productId.price,
+            quantity: item.quantity
+          }));
+          const totalPrice = cart.totalPrice
+          const totalQuanity =cart.totalQuantity
+
+        
+        const Order = new orderModel({
+            userId,cart:products,paymentOption,deliveryAddress,totalPrice,totalQuanity
+        })
+        const orderSuccess = await Order.save()
+        //Update Stock
+        const updateStock = async (products) => {
+            try {
+                for (let product of products) {
+                    await productModel.findByIdAndUpdate(product.productid, { $inc: { quantity: -product.quantity } });
+                }
+                console.log('Stock updated successfully');
+            } catch (error) {
+                console.error('Error updating stock:', error);
+            }
+        };
+        if(orderSuccess){
+            updateStock(products)
+        }
+        await cartModel.deleteOne({ _id: cartId });
+        req.session.orderId=orderSuccess._id
+        res.redirect("/confirmOrder")
+
+
+           } catch (error) {
+        console.log(error)
+    }
+}
+
+const orders =async(req,res)=>{
+    try {
+        const userId = req.user.id
+        const orders = await orderModel.find({userId :userId}).populate('cart').sort({createdAt:-1})
+        console.log(orders)
+        if(orders){
+            res.render("orderHistory",{orders})
+        }
+        res.render("orderHistory",{message:"No orders placed yet!"})
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
 module.exports = {
     loadHome,
     loadSignup,
@@ -393,6 +570,10 @@ module.exports = {
     loadverifyOTP,
     postVerifyOTP,
     resendOTP,
+    profile,
+    showAddress,
+    saveChanges,
+    newAddress,
     productDetails,
     shop,
     shopByCategory,
@@ -403,7 +584,13 @@ module.exports = {
     viewCart,
     addtoCart,
     deleteCart,
-    removeItem
+    removeItem,
+    changeQty,
+    checkout,
+    checkoutAddress,
+    placeOrder,
+    confirmOrder,
+    orders
    
 }
 

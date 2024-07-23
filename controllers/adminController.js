@@ -2,6 +2,7 @@ const userModel = require('../models/userModel')
 const categoryModel = require('../models/categoryModel')
 const productModel = require('../models/productModel')
 const adminModel = require('../models/adminModel')
+const orderModel = require('../models/orderModel')
 require('dotenv').config()
 
 
@@ -354,6 +355,29 @@ const logout = async(req,res)=>{
     }
 }
 
+// View Orders
+const viewOrders = async(req,res)=>{
+  try {
+    const orders = await orderModel.find().populate('userId')
+    res.render("orders",{orders})
+  } catch (error) {
+    console.log(error)
+  }
+}
+//Edit Order Status
+const editOrderStatus = async(req,res)=>{
+  try {
+    const {id,status} = req.query
+    const edit = await orderModel.findByIdAndUpdate(id,{orderStatus:status})
+    if(edit){
+      console.log("status changed")
+      res.status(200).json({success:true})
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 module.exports ={
   loadLogin,
   verifyAdmin,
@@ -375,5 +399,7 @@ module.exports ={
   removeImage,
   saveProductimage,
   deleteRestoreProduct,
-  logout
+  logout,
+  viewOrders,
+  editOrderStatus
 }

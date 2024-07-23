@@ -362,7 +362,7 @@
                                         </div>
                                         <ul class="product-meta font-xs color-grey mt-50">
                                             <% if(product.quantity===0){ %>
-                                           <p class="in-stock text-danger fw-bolder font-xl ml-5"> SOLD OUT <span class="text-black-50 fw-normal font-md">This is product is currently unavilable</span></p>
+                                           <p class="in-stock text-danger fw-bolder font-xl ml-5"><span class="text-black-50 fw-normal font-md">This product is currently unavilable</span></p>
                                         <% }  %>
                                         </ul>
                                         <div class="product_sort_info font-xs mb-30">
@@ -372,19 +372,27 @@
                                             </ul>
                                         </div>
                                        
-                                        <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                                        <div class="bt-1 border-color-1 mt-30 mb-30">
+                                            <% if(product.quantity >=0 &&product.quantity <10 ) {%>
+                                                 <p class="text-muted">Only <span class="text-danger"><%=product.quantity %></span> left .Hurry Up</p>
+                                            <% }else{ %>
+                                            <p class="text-muted"> <span class="text-success"><%=product.quantity %></span> In Stock</p>
+                                            <% } %>
+                                        </div>
                                         <div class="detail-extralink">
+                                            <% if(product.quantity >0 ){%>
                                             <div class="detail-qty border radius">
                                                 <a href="#" onclick="qtydown()" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
                                                 <span class="qty-val" id="productQty">1</span>
-                                                <a href="#" onclick="qtyup()" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                                <a href="#" onclick="qtyup('<%=product.quantity%>')" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                                <% } %>
                                             </div>
                                             <div class="product-extra-link2">
                                                 <% if(product.quantity > 0){%>
                                                     <button  onclick="addToCart('<%=product._id%>','<%=product.price%>')" id="addtocart-btn" class="button button-add-to-cart">Add to cart</button>
-
-                                                <%}else %>
-                                                <button  id="addtocart-btn" class="button button-add-to-cart">SOLD OUT</button>
+                                                <%}else{ %>
+                                                <h5  class="text-danger">SOLD OUT</h5>
+                                                <% } %>
                                                 <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
                                             </div>
                                         </div>
@@ -631,12 +639,19 @@
        })
         });
      /////////////////////// CHANGE QUANTITY ///////////////////////
-     const qtyup = ()=>{
+     const qtyup = (stock)=>{
         const qtyValue = document.getElementById('productQty')
         const qty = parseInt(qtyValue.textContent,10)
-        if(qty < 5){
+        console.log(stock)
+      
+            if(qty < 5 && stock > qty )
+            {
             qtyValue.textContent =qty+1
+        }else{
+            alert("maximum quantity added")
         }
+    
+        
      }
      const qtydown = ()=>{
         const qtyValue = document.getElementById('productQty')
@@ -664,7 +679,8 @@
            const data = await response.json()
         
         if (response.ok) {
-            window.location.reload()
+            alert("product added to the cart")
+           
         } else if (data.redirect) {
             window.location.href = data.redirectUrl
         } else {

@@ -30,7 +30,15 @@ userRoute.get('/auth/google/callback',passport.authenticate('google', { failureR
 (req, res) => {
   res.redirect('/home')
 });
+
+
 userRoute.get("/forgotPassword",userControl.forgotPassword)
+userRoute.get("/profile",userControl.profile)
+userRoute.get("/profile/address",userControl.showAddress)
+userRoute.patch("/profile/saveChanges/:id",userControl.saveChanges)
+userRoute.patch("/profile/addNewAddress/:id",userControl.newAddress)
+
+
 userRoute.get("/logout",clearCache,logout)
 userRoute.get('/productDetails/:id',clearCache,userStatus,userControl.productDetails)
 userRoute.get('/shop',clearCache,userStatus,userControl.shop)
@@ -44,6 +52,16 @@ userRoute.get('/cart',userControl.viewCart)
 userRoute.post('/cart/addtoCart',userControl.addtoCart)
 userRoute.delete('/cart/deleteCart',userControl.deleteCart)
 userRoute.patch('/cart/removeItem/:id',userControl.removeItem)
+userRoute.patch('/cart/changeQty/:id',userControl.changeQty)
+
+userRoute.get('/checkout',userControl.checkout)
+userRoute.patch('/checkout/changeAddress',userControl.checkoutAddress)
+
+userRoute.post('/placeOrder',userControl.placeOrder)
+userRoute.get('/confirmOrder',userControl.confirmOrder)
+
+userRoute.get('/orders',userControl.orders)
+
 
 
 module.exports = userRoute;

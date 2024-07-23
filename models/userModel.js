@@ -1,5 +1,29 @@
 const mongoose = require('../config/dbConfig')
 
+const addressSchema = new mongoose.Schema({
+ 
+  address:{
+    type:String,
+    required:true
+  },
+  city:{
+    type:String
+  },
+  state:{
+    type:String
+  },
+  pincode :{
+    type:String
+  },
+  isDefault :{
+    type: Boolean,
+    default :false
+
+  }
+})
+
+
+
 // Define the user schema
 const userSchema = new mongoose.Schema({
     username: {
@@ -33,7 +57,9 @@ const userSchema = new mongoose.Schema({
     blocked:{
       type:Boolean,
       default:false
-    }
+    },
+    address :[addressSchema],
+    DOB: {type:Date}
 
   });
 
