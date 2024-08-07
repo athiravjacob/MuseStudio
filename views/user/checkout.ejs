@@ -1,4 +1,5 @@
 <%-include('../layoutUser/header.ejs') %>
+<script src="https://www.paypal.com/sdk/js?client-id=<%=paypalId%>"></script>
     <%-include('../layoutUser/navigation.ejs') %>
     <div class="mobile-header-active mobile-header-wrapper-style">
         <div class="mobile-header-wrapper-inner">
@@ -234,7 +235,44 @@
                                 <input type="text" name="address" required="" placeholder="Address *" class="form-control mb-3">
                                 <input required="" type="text" name="city" placeholder="City / Town *"
                                     class="form-control mb-3">
-                                <input required="" type="text" name="state" placeholder="State  *" class="form-control mb-3">
+                                <select placeholder="State  *" name="state" class="form-control mb-3">
+                                    <option>Select State</option>
+                                    <option>Andhra Pradesh</option>
+                                    <option>Arunachal Pradesh</option>
+                                    <option>Assam</option>
+                                    <option>Bihar</option>
+                                    <option>Chhattisgarh</option>
+                                    <option>Goa</option>
+                                    <option>Gujarat</option>
+                                    <option>Haryana</option>
+                                    <option>Himachal Pradesh</option>
+                                    <option>Jharkhand</option>
+                                    <option>Karnataka</option>
+                                    <option>Kerala</option>
+                                    <option>Madhya Pradesh</option>
+                                    <option>Maharashtra</option>
+                                    <option>Manipur</option>
+                                    <option>Meghalaya</option>
+                                    <option>Mizoram</option>
+                                    <option>Nagaland</option>
+                                    <option>Odisha</option>
+                                    <option>Punjab</option>
+                                    <option>Rajasthan</option>
+                                    <option>Sikkim</option>
+                                    <option>Tamil Nadu</option>
+                                    <option>Telangana</option>
+                                    <option>Tripura</option>
+                                    <option>Uttar Pradesh</option>
+                                    <option>Uttarakhand</option>
+                                    <option>West Bengal</option>
+                                    <option>Andaman and Nicobar Islands</option>
+                                    <option>Chandigarh</option>
+                                    <option>Dadra and Nagar Haveli and Daman and Diu</option>
+                                    <option>Delhi</option>
+                                    <option>Lakshadweep</option>
+                                    <option>Puducherry</option>
+                                </select>
+                                
                                 <input required="" type="text" name="zipcode" placeholder="PIN CODE *"
                                     class="form-control mb-3">
                             </form>
@@ -273,8 +311,14 @@
                                                             src="/<%=item.productId.images[0] %>" alt="#"></td>
                                                     <td>
                                                         <h5><a href="shop-product-full.html">
+                                                            <% if(item.quantity > item.productId.quantity)
+                                                            {
+                                                                qty =item.productId.quantity
+                                                            }else {qty = item.quantity
+                                                            }%>
+                                                          
                                                                 <%=item.productId.name %>
-                                                            </a></h5> <span class="product-qty">x <%=item.quantity %></span>
+                                                            </a></h5> <span class="product-qty">x <%=qty %></span>
                                                     </td>
                                                     <td>
                                                         <%=item.price %>
@@ -291,14 +335,14 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Shipping</th>
-                                                        <td colspan="3"><em>Free Shipping</em></td>
+                                                        <th>coupon Discount</th>
+                                                        <td colspan="3"><em><%=cart.couponDiscount %></em></td>
                                                     </tr>
                                                     <tr>
                                                         <th>Total</th>
                                                         <td colspan="3" class="product-subtotal"><span
                                                                 class="font-xl text-brand fw-900">
-                                                                $ <%= cart.totalPrice %>
+                                                                $ <%= cart.shippingTotal %>
                                                             </span></td>
                                                     </tr>
                                         </tbody>
@@ -327,11 +371,13 @@
                                     </div>
                                     <div class="custome-radio">
                                         <input class="form-check-input" required="" type="radio" name="payment_option"
-                                            id="exampleRadios5" value="UPI" checked="">
+                                            id="exampleRadios5" value="paypal" checked="">
                                         <label class="form-check-label" for="exampleRadios5" data-bs-toggle="collapse"
                                             data-target="#paypal" value="paypal">Paypal</label>
         
                                     </div>
+                                    <div id="paypal-button-container"></div>
+
                                     <a href="#" onclick="placeOrder('<%=cart._id%>')" class="btn btn-fill-out btn-block mt-30">Place Order</a>
         
                                 </div>
@@ -385,27 +431,82 @@
             const address = document.getElementById('addr').textContent
             const cityState = document.getElementById('cityState').textContent
             const fullAddress = address + " " +cityState
+            if(!address ||!cityState || !fullAddress ){
+                console.log("please enter address")
+                alert("Please select an address")
+            }
+           
+            if (selectedPaymentOption === 'paypal') {
+            // Show the PayPal button container
+            document.getElementById('paypal-button-container').style.display = 'block';
+
+            paypal.Buttons({
+    createOrder: function(data, actions) {
+        return fetch('/create-paypal-order', {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).then(function(res) {
+            return res.json();
+        }).then(function(orderData) {
+            return orderData.id;
+        });
+    },
+    onApprove: function(data, actions) {
+        return actions.order.capture().then(async function(details) {
+            alert('Transaction completed by ' + details.payer.name.given_name);
+            
             let orderDetails ={
                 cartId :cartId,
                 paymentOption :selectedPaymentOption,
-                deliveryAddress:fullAddress
+                deliveryAddress:fullAddress,
+                transactionId : details.id
             }
 
-            const response = await fetch('/placeOrder',{
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json'
+            // Proceed with placing the order
+            const response = await fetch('/placeOrder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                body:JSON.stringify(orderDetails)
-            })
-            if(response.ok) {
-                window.location.href = "/confirmOrder"
+                body: JSON.stringify(orderDetails)
+            });
+            if (response.ok) {
+                window.location.href = "/confirmOrder";
+            }
+        });
+    },
+    onError: function(err) {
+        console.error('An error occurred during the transaction:', err);
+        alert('An error occurred during the transaction. Please try again.');
+    }
+}).render('#paypal-button-container');
+
+            } else if (selectedPaymentOption === 'COD') {
+                let orderDetails ={
+                cartId :cartId,
+                paymentOption :selectedPaymentOption,
+                deliveryAddress:fullAddress
+               
+            }
+            const response = await fetch('/placeOrder', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderDetails)
+            });
+            if (response.ok) {
+                window.location.href = "/confirmOrder";
+            }
             }
         } catch (error) {
-console.log(error)
+            console.log(error);
         }
-    }
-     
+        };
+                
+            
       
     </script>
  <%-include('../layoutUser/footer.ejs') %>

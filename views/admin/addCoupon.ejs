@@ -1,0 +1,110 @@
+<%- include('../layoutAdmin/header.ejs') %>
+<%- include('../layoutAdmin/asideMenu.ejs') %>
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Add New Coupon</h2>
+            <%- include('../layoutUser/flashError.ejs') %>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <form id="addCouponForm" method="post" action="/admin/coupons/add" >
+                    <div class="row gx-5">
+                        <div class="col-lg-8">
+                            <div class="mb-4">
+                                <label for="code" class="form-label">Coupon Code</label>
+                                <input type="text" name="code" class="form-control" id="code" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="discountType" class="form-label">Discount Type</label>
+                                <select name="discountType" class="form-select" id="discountType" required>
+                                    <option value="">Select discount type</option>
+                                    <option value="amount">Fixed Amount</option>
+                                    <option value="percentage">Percentage</option>
+                                </select>
+                            </div>
+                            <div class="mb-4" id="discountAmountField" style="display: none;">
+                                <label for="discountAmount" class="form-label">Discount Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="discountAmount" class="form-control" id="discountAmount" step="0.01">
+                                </div>
+                            </div>
+                            <div class="mb-4" id="discountPercentageField" style="display: none;">
+                                <label for="discountPercentage" class="form-label">Discount Percentage</label>
+                                <div class="input-group">
+                                    <input type="number" name="discountPercentage" class="form-control" id="discountPercentage" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea name="description" class="form-control" id="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <label for="expiresAt" class="form-label">Expiry Date</label>
+                                <input type="date" name="expiresAt" class="form-control" id="expiresAt">
+                            </div>
+                            <div class="mb-4">
+                                <label for="useageLimit" class="form-label">Usage Limit</label>
+                                <input type="number" name="useageLimit" class="form-control" id="useageLimit">
+                            </div>
+                            <div class="mb-4">
+                                <label for="min_purchase_amount" class="form-label">Minimum Purchase Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="min_purchase_amount" class="form-control" id="min_purchase_amount" step="0.01">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="max_discount" class="form-label">Maximum Discount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="max_discount" class="form-control" id="max_discount" step="0.01">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" name="isActive" class="form-check-input" id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Coupon</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    document.getElementById('discountType').addEventListener('change', function() {
+        const amountField = document.getElementById('discountAmountField');
+        const percentageField = document.getElementById('discountPercentageField');
+        
+        if (this.value === 'amount') {
+            amountField.style.display = 'block';
+            percentageField.style.display = 'none';
+        } else if (this.value === 'percentage') {
+            amountField.style.display = 'none';
+            percentageField.style.display = 'block';
+        } else {
+            amountField.style.display = 'none';
+            percentageField.style.display = 'none';
+        }
+    });
+
+    
+
+   
+</script>
+
+<%- include('../layoutAdmin/footer.ejs') %>

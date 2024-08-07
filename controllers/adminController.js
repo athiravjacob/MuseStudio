@@ -3,6 +3,7 @@ const categoryModel = require('../models/categoryModel')
 const productModel = require('../models/productModel')
 const adminModel = require('../models/adminModel')
 const orderModel = require('../models/orderModel')
+const couponModel = require('../models/couponModel')
 require('dotenv').config()
 
 
@@ -49,10 +50,16 @@ const loadDashboard = async (req, res) => {
   // ************************** View Customers
   const loadCustomers = async (req, res) => {
     try {
-      const customer = await userModel.find()
-      res.render("customers",{customer:customer});
+      const count = await userModel.countDocuments();
+        const currentPage = req.query.pageno || 1
+        const limit = 8
+        const skip = (currentPage - 1) * limit
+        const totalPages = Math.ceil(count/limit)
+
+        const customer = await userModel.find().skip(skip).limit(limit)
+      res.render("customers",{customer,totalPages,currentPage});
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
     }
   };
   // ************************** Block Customer
@@ -81,8 +88,13 @@ const unblockCustomer = async(req,res) =>{
 // ******************** Category
 const loadCategory = async(req,res)=>{
   try {
-    const category = await categoryModel.find()
-    res.render('categories',{category:category})
+    const count = await categoryModel.countDocuments();
+    const currentPage = req.query.pageno || 1
+    const limit = 8
+    const skip = (currentPage - 1) * limit
+    const totalPages = Math.ceil(count/limit)
+    const category = await categoryModel.find().skip(skip).limit(limit)
+    res.render('categories',{category,currentPage,totalPages})
     
   } catch (error) {
     console.log(error)
@@ -139,7 +151,7 @@ const editCategory = async(req,res)=>{
   }
 }
 
-// ********************* Delete and restore Category
+// ********************************************************************* Delete and restore Category
 const deleteRestoreCategory = async(req,res)=>{
   try {
     const id = req.params.id
@@ -188,12 +200,17 @@ const addBrand= async(req,res)=>{
   }
 }
 
-// *********************** load Products
+// *********************************************************** load Products
 const loadProducts = async(req,res)=>{
   try {
-    const product = await productModel.find()
+    const count = await productModel.countDocuments();
+    const currentPage = req.query.pageno || 1
+    const limit = 8
+    const skip = (currentPage - 1) * limit
+    const totalPages = Math.ceil(count/limit)
+    const product = await productModel.find().skip(skip).limit(limit)
     if(product){
-      res.render('product',{product:product})
+      res.render('product',{product,totalPages,currentPage})
     }
     else{
       console.log("error loading product list")
@@ -213,14 +230,16 @@ const loadaddProduct = async(req,res)=>{
   }
 }
 
-// ******************* Add new Product
+
+// ************************************************************* Add new Product
+
 const addProduct = async(req,res)=>{
   try {
-    console.log(req.body)
     const{name,description,brand,category,material,price,quantity} = req.body
     const categoryId = await categoryModel.find({name:category}).select('_id')
     const imagePath = req.files.map(file =>file.path.replace(/\\/g, '/'))
-    console.log(imagePath)
+   
+
     let product = new productModel({
       name,
       description,
@@ -244,7 +263,9 @@ const addProduct = async(req,res)=>{
     res.status(500).json({ success: false });
   }
 }
-// ******************* View Edit Product page
+
+// ************************************************************ View Edit Product page
+
 const loadeditProduct = async(req,res)=>{
   try {
     const id = req.params.id
@@ -254,19 +275,37 @@ const loadeditProduct = async(req,res)=>{
     
   }
 }
-// *************************** Edit Product Details
+// *********************************************************** Edit Product Details
 const editProduct = async(req,res)=>{
   try {
     const id = req.params.id
     const {name,description,category,brand,material,price,quantity} = req.body
+   
+     if(price <=0 ){
+      req.flash('error_msg',"Price should be greater than 0")
+       return res.redirect(`/admin/products/edit/${id}`)
+    }else if(quantity <0){
+      req.flash('error_msg',"Quantity cannot be less than 0")
+      return res.redirect(`/admin/products/edit/${id}`)
+
+    }
+   
     const product = await productModel.findById(id)
    if(product){
     console.log("inside edit")
-    const update = await productModel.findByIdAndUpdate(id,{name,description,category,brand,material,price,quantity},{new:true})
+    const update = await productModel.findByIdAndUpdate(id,
+      {name,
+        description,
+        category,
+        brand,
+        material,
+        price,
+        quantity},
+        {new:true})
      if(update) {
       req.flash("success_msg","Product details updated")
       console.log("product updated");
-      res.status(200)
+      return  res.redirect(`/admin/products`)
       } 
     else{
       req.flash("error_msg","Error updating")
@@ -279,7 +318,7 @@ const editProduct = async(req,res)=>{
     res.status(500).send({message:"network error"})
   }
 }
-//*************************** Remove Image in edit product
+//********************************************************************* Remove Image in edit product
 const removeImage = async(req,res)=>{
   try {
     const id = req.params.id
@@ -295,7 +334,7 @@ const removeImage = async(req,res)=>{
     console.log(error)
   }
 }
- // *************************** add new image in edit product
+ // ***************************************************************** add new image in edit product
 const saveProductimage = async(req,res)=>{
   try {
     const id = req.params.id
@@ -314,7 +353,7 @@ const saveProductimage = async(req,res)=>{
   }
 }
 
-//*******************************  Delete restore product
+//*************************************************************************  Delete restore product
 const deleteRestoreProduct = async(req,res)=>{
   try {
     const id = req.params.id
@@ -349,7 +388,7 @@ const deleteRestoreProduct = async(req,res)=>{
 const logout = async(req,res)=>{
   try {
       req.session.destroy();
-      res.redirect("/admin/");
+      res.redirect("/admin");
     } catch (error) {
       console.log(error.message);
     }
@@ -358,8 +397,14 @@ const logout = async(req,res)=>{
 // View Orders
 const viewOrders = async(req,res)=>{
   try {
-    const orders = await orderModel.find().populate('userId')
-    res.render("orders",{orders})
+    
+      const count = await orderModel.countDocuments();
+      const currentPage = req.query.pageno || 1
+      const limit = 8
+      const skip = (currentPage - 1) * limit
+      const totalPages = Math.ceil(count/limit)
+    const orders = await orderModel.find().populate('userId').skip(skip).limit(limit)
+    res.render("orders",{orders,currentPage,totalPages})
   } catch (error) {
     console.log(error)
   }
@@ -375,6 +420,50 @@ const editOrderStatus = async(req,res)=>{
     }
   } catch (error) {
     console.log(error)
+  }
+}
+
+
+//Coupons List
+const coupon = async(req,res)=>{
+  try {
+    const coupons = await couponModel.find()
+    res.render("coupon",{coupons})
+  } catch (error) {
+    
+  }
+}
+
+// Add Coupon Page
+const viewAddCoupon = async(req,res)=>{
+  try {
+    res.render("addCoupon")
+  } catch (error) {
+    
+  }
+}
+//Add coupon
+const addCoupon = async(req,res)=>{
+  try {
+    const {
+      code,discountType,discountAmount,discountPercentage,expiresAt,useageLimit,
+      min_purchase_amount,max_discount,description } = req.body
+      console.log(req.body)
+    const coupon = new couponModel({
+      code,
+      discountType,
+      discountAmount,
+      discountPercentage,
+      expiresAt,
+      useageLimit,
+      min_purchase_amount,
+      max_discount,
+      description
+    })
+
+    await coupon.save()
+  } catch (error) {
+   console.log(error) 
   }
 }
 
@@ -401,5 +490,8 @@ module.exports ={
   deleteRestoreProduct,
   logout,
   viewOrders,
-  editOrderStatus
+  editOrderStatus,
+  coupon,
+  viewAddCoupon,
+  addCoupon
 }

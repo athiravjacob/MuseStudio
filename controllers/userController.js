@@ -7,9 +7,13 @@ const otpModel = require('../models/otpModel')
 const productModel = require('../models/productModel')
 const {sendEMail}=require('../utils/mail')
 const {generateOTP}= require('../utils/otpGenerator')
-const categoryModel = require('../models/categoryModel')
+const wishlistModel = require('../models/wishlistModel')
 const cartModel = require('../models/cartModel')
 const orderModel = require('../models/orderModel')
+const couponModel = require('../models/couponModel')
+const { client } = require('../utils/paypal');
+const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
+require('dotenv').config()
 
 
 
@@ -283,6 +287,12 @@ const productDetails = async(req,res)=>{
 // ********************************* Shop Page
 const shop = async(req,res)=>{
     try {
+        const count = await productModel.countDocuments({ status: true });
+        const currentPage = req.query.pageNo || 1
+        const limit =8
+        const skip = (currentPage - 1) * limit
+        const totalPages = Math.ceil(count/limit)
+ 
         const search = req.query.search
         if(search && search !==" "){
             const products = await productModel.find({status:true,
@@ -294,19 +304,27 @@ const shop = async(req,res)=>{
             })
             res.render("shop",{products})
         }
-        const products = await productModel.find({status:true}).populate('category')
-        res.render("shop",{products})
+        const products = await productModel.find({status:true}).populate('category').skip(skip).limit(8)
+
+        res.render("shop",{products,totalPages,currentPage})
     } catch (error) {
-        
+        console.log(error)
     }
 }
 
 // *************************** Shop By Category
 const shopByCategory = async(req,res)=>{
     try {
-        const id = req.params.id
-        const products =await productModel.find({category:id}).populate('category')
-        res.render("shop",{products})
+        const selectedCategoryId = req.params.id
+        const count = await productModel.find({category:selectedCategoryId}).countDocuments({ status: true });
+        if(count <8){
+            currentPage =null
+            totalPages = null
+        }else{
+
+        }
+        const products =await productModel.find({category:selectedCategoryId}).populate('category')
+        res.render("shop",{products,selectedCategoryId,currentPage,totalPages})
     } catch (error) {
         console.log(error)
     }
@@ -315,18 +333,31 @@ const shopByCategory = async(req,res)=>{
 // ********************************* Sort Low to high
 const shopLowToHigh = async(req,res)=>{
     try {
+        const count = await productModel.find().countDocuments({ status: true });
+        if(count <8){
+            currentPage =null
+            totalPages = null
+        }else{
+
+        }
         const products = await productModel.find().sort({price:1})
-        res.render("shop",{products})
+        res.render("shop",{products,currentPage,totalPages})
     } catch (error) {
-        
+        console.log(error)
     }
 }
 //************************************* Sort High to Low
 const shopHighToLow = async(req,res)=>{
     try {
+        const count = await productModel.find().countDocuments({ status: true });
+        if(count <8){
+            currentPage =null
+            totalPages = null
+        }else{
+
+        }
         const products = await productModel.find().sort({price:-1})
-        const count = await productModel.countDocuments()
-        res.render("shop",{products})
+        res.render("shop",{products,currentPage,totalPages})
     } catch (error) {
         
     }
@@ -335,8 +366,15 @@ const shopHighToLow = async(req,res)=>{
 //*********************************  Sort Ascending 
 const shopAscending = async(req,res)=>{
     try {
+        const count = await productModel.find().countDocuments({ status: true });
+        if(count <8){
+            currentPage =null
+            totalPages = null
+        }else{
+
+        }
         const products = await productModel.find().sort({name:1})
-        res.render("shop",{products})
+        res.render("shop",{products,currentPage,totalPages})
     } catch (error) {
         
     }
@@ -345,9 +383,15 @@ const shopAscending = async(req,res)=>{
 // ***********************Sort Descending
 const shopDescending = async(req,res)=>{
     try {
+        const count = await productModel.find().countDocuments({ status: true });
+        if(count <8){
+            currentPage =null
+            totalPages = null
+        }else{
+
+        }
         const products = await productModel.find().sort({name:-1})
-        const count = await productModel.countDocuments()
-        res.render("shop",{products})
+        res.render("shop",{products,currentPage,totalPages})
     } catch (error) {
         
     }
@@ -359,8 +403,9 @@ const viewCart = async(req,res)=>{
     try {
         const user = req.user
         const cart = await cartModel.findOne({userId :user.id}).populate('items.productId')
-        console.log("fetch is working")
-        res.status(200).render("cart",{cart})
+        const coupon = await couponModel.find()
+        if(!coupon) coupon=null
+        res.status(200).render("cart",{cart,coupon})
     } catch (error) {
         console.log(error)
     }
@@ -380,6 +425,9 @@ const addtoCart = async(req,res)=>{
             })
         } 
         const {productid,productQty,productPrice} = req.body
+        console.log(`from wish ${req.body}`)
+        const product = await productModel.findById(productid)
+        if(productQty > product.quantity) productQty = product.quantity
 
         const userId = user._id
         let cart = await cartModel.findOne({userId}) 
@@ -397,8 +445,9 @@ const addtoCart = async(req,res)=>{
                 quantity :productQty
             })
         }
-
         const addedtocart =await cart.save()
+
+        if(addedtocart) res.status(200)
     } catch (error) {
         console.log(error)
     }
@@ -460,13 +509,39 @@ const changeQty = async(req,res)=>{
     }
 }
 
+// **************************************Apply Coupon
+const applyCoupon = async(req,res)=>{
+    try {
+        const user = req.user.id
+        const code = req.params.code
+        let discount=0
+        const coupon = await couponModel.findOne({code})
+        const cart = await cartModel.findOne({userId :user})
+        
+        if(coupon.discountType === 'amount'){
+             discount = coupon.discountAmount
+        }else{
+            discount = cart.totalPrice * coupon.discountPercentage /100
+        }
+        cart.couponDiscount = discount
+        cart.save()
+        console.log(cart)
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+
 // ************************* Check Out
 const checkout = async(req,res)=>{
     try {
         const user = req.user
         const cart = await cartModel.findOne({userId:user.id}).populate('items.productId')
+        const paypalId = process.env.PAYPAL_ID
         if(!user) return res.render("home")
-        res.render("checkout",{cart})
+        res.render("checkout",{cart,paypalId})
         
        
     } catch (error) {
@@ -500,33 +575,72 @@ const confirmOrder = async(req,res)=>{
     }
 }
 
+const createPayPalOrder = async(req,res)=>{
+    const user = req.user.id
+    const cart = await cartModel.findOne({userId:user})
+    let billAmount = cart.shippingTotal
+    const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
+    request.prefer('return=representation');
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: billAmount  
+        }
+      }]
+    });
+  
+    try {
+      const order = await client().execute(request);
+      res.status(201).json({
+
+        id: order.result.id
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  };
 
  
  
 const placeOrder = async(req,res)=>{
     try {
+        let discount =0
+        let transactionId =''
         const userId = req.user.id
         const {cartId,paymentOption,deliveryAddress} = req.body
+        if(paymentOption == 'paypal') {
+            transactionId = req.body.transactionId 
+            paymentStatus ='paid'
+        }else {
+            paymentStatus = 'pending'
+        }
         const cart = await cartModel.findById(cartId).populate('items.productId')
         const products = cart.items.map(item => ({
-            productid:item.productId._id,
+            productId:item.productId._id,
             productname: item.productId.name,
             price: item.productId.price,
             quantity: item.quantity
           }));
+         
+          if(cart.couponDiscount)  discount = cart.couponDiscount
           const totalPrice = cart.totalPrice
+          const shippingTotal =cart.shippingTotal
           const totalQuanity =cart.totalQuantity
 
         
         const Order = new orderModel({
-            userId,cart:products,paymentOption,deliveryAddress,totalPrice,totalQuanity
+            userId,cart:products,paymentOption,paymentStatus,deliveryAddress,totalPrice,totalQuanity,shippingTotal,discount,transactionId
         })
         const orderSuccess = await Order.save()
         //Update Stock
         const updateStock = async (products) => {
             try {
                 for (let product of products) {
-                    await productModel.findByIdAndUpdate(product.productid, { $inc: { quantity: -product.quantity } });
+                       
+                    await productModel.findByIdAndUpdate(product.productId, { $inc: { quantity: -product.quantity} });
                 }
                 console.log('Stock updated successfully');
             } catch (error) {
@@ -549,16 +663,95 @@ const placeOrder = async(req,res)=>{
 const orders =async(req,res)=>{
     try {
         const userId = req.user.id
-        const orders = await orderModel.find({userId :userId}).populate('cart').sort({createdAt:-1})
+        const orders = await orderModel.find({userId :userId}).populate('cart.productId').sort({createdAt:-1})
         console.log(orders)
         if(orders){
-            res.render("orderHistory",{orders})
+           return res.render("orderHistory",{orders})
         }
         res.render("orderHistory",{message:"No orders placed yet!"})
     } catch (error) {
         console.log(error)
     }
 
+}
+
+//Cancel Order
+
+const cancelOrder = async(req,res)=>{
+    try {
+        const user = req.user.id
+        const id = req.query.orderId
+        console.log(id)
+        const orders = await orderModel.findByIdAndUpdate(id,{orderStatus:"cancelled"})
+       
+        if(orders){
+            res.render("orderHistory",{orders})
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+// wishlist
+const wishlist = async(req,res)=>{
+    try {
+        const userid = req.user.id
+        const wishlist = await wishlistModel.findOne({user:userid}).populate('products')
+        if(wishlist){
+            return res.render("wishlist",{wishlistItems : wishlist.products})
+        }else
+        res.render("wishlist",{wishlistItems:null})
+        
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+// Add to wishlist
+
+const addtoWishlist = async(req,res)=>{
+    try {
+        const user = req.user.id
+        const productId = req.body.productId
+        if(!user){
+            console.log("No user")
+            req.flash("error_msg","Please login to add products to cart")
+            return res.status(401).json({ 
+                redirect: true, 
+                redirectUrl: "/login",
+                message: "Please login to add products to cart"
+            })
+        } 
+        const existing_wishlist = await wishlistModel.findOne({user:user})
+        if(existing_wishlist) {
+            const productexist = existing_wishlist.products.includes(productId)
+            if(!productexist) {
+                existing_wishlist.products.push(productId)
+                await existing_wishlist.save();
+            }
+            
+        }else{
+            const wishlist = new wishlistModel({user,products:[productId]})
+            await wishlist.save();
+        }
+            
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const removefromWishlist = async(req,res)=>{
+    try{
+        const user = req.user.id
+        const productId = req.query.product
+        const wishlist = await wishlistModel.findOne({user})
+        if(wishlist){
+           if(wishlist.products.includes(productId)) {
+            wishlist.products.pull(productId)
+            await wishlist.save()
+           }
+        }
+    }catch(error){}
 }
 
 module.exports = {
@@ -586,11 +779,17 @@ module.exports = {
     deleteCart,
     removeItem,
     changeQty,
+    applyCoupon,
     checkout,
     checkoutAddress,
+    createPayPalOrder,
     placeOrder,
     confirmOrder,
-    orders
+    orders,
+    cancelOrder,
+    wishlist,
+    addtoWishlist,
+    removefromWishlist
    
 }
 

@@ -1,7 +1,6 @@
 <%-include('../layoutAdmin/header.ejs') %>
     <%-include('../layoutAdmin/asideMenu.ejs') %>
     <main class="main-wrap">
-        <%-include('../layoutAdmin/header.ejs') %>
         <section class="content-main">
             <div class="row">
                 <div class="col-9">
@@ -14,16 +13,17 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4>Basic</h4>
+
                         </div>
                         <div class="card-body">
                             <form method="post" enctype="multipart/form-data" id="product-form">
                                 <div class="mb-4">
                                     <label  class="form-label">Product title</label>
-                                    <input type="text" placeholder="Type here" class="form-control" name="name">
+                                    <input type="text" placeholder="Type here" class="form-control" name="name" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Full description</label>
-                                    <textarea placeholder="Type here" class="form-control" name="description" rows="4"></textarea>
+                                    <textarea placeholder="Type here" class="form-control" name="description" rows="4" required></textarea>
                                 </div>
                                 <div class="row mb-4">
                                         <div class="col-lg-4">
@@ -60,14 +60,14 @@
                                         <div class="mb-4">
                                             <label class="form-label">Price</label>
                                             <div class="row gx-2">
-                                                <input placeholder="$" type="text" name="price" class="form-control">
+                                                <input placeholder="$" type="number" name="price" class="form-control" required>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-lg-4">
                                         <div class="mb-4">
                                             <label class="form-label">Quantity</label>
-                                            <input placeholder="$" type="text" name ="quantity" class="form-control">
+                                            <input placeholder="$" type="number" name ="quantity" class="form-control" required>
                                         </div>
                                     </div>
                                     
@@ -79,7 +79,7 @@
                                     <div class="card-body">
                                         <div class="input-upload">
                                             <div id="preview-container"></div>
-                                            <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple>
+                                            <input class="form-control" id="file-input" type="file" name="images" accept="image/*" multiple >
                                         </div>
                                         <div id="cropper-container" style="display: none;">
                                             <img id="cropper-image" src="">
@@ -89,7 +89,7 @@
                                 </div>
     
                                
-    
+                                <%-include('../layoutUser/flashError.ejs') %>
                                 <button class="btn btn-md rounded font-sm mr-5 hover-up" type="submit">Add Product</button>
                             </form>
                         </div>
@@ -111,6 +111,7 @@
         let files = [];
         let cropper;
     
+       
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
@@ -180,17 +181,21 @@
     
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            console.log(formData)
-            files.forEach(file => {
-                console.log(file)
-                formData.append('images', file);
-            });
-    
-            fetch('/admin/products/addProduct', {
-                method: 'POST',
-                body: formData
-            })
+          
+                const formData = new FormData(this);
+                console.log(formData)
+                files.forEach(file => {
+                    console.log(file)
+                    formData.append('images', file);
+                });
+                if(files.length === 0){
+                    alert("select images")
+                }else{
+                fetch('/admin/products/addProduct', {
+                    method: 'POST',
+                    body: formData
+                })
+             
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -203,7 +208,7 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while adding the product.');
-            });
+            });}
         });
     </script>
     

@@ -1,0 +1,58 @@
+<%- include('../layoutAdmin/header.ejs') %>
+<%- include('../layoutAdmin/asideMenu.ejs') %>
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Coupons</h2>
+            <%- include('../layoutUser/flashError.ejs') %>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Coupon Code</th>
+                                <th>Discount Type</th>
+                                <th>Discount Value</th>
+                                <th>Description</th>
+                                <th>Expiry Date</th>
+                                <th>Usage Limit</th>
+                                <th>Minimum Purchase</th>
+                                <th>Maximum Discount</th>
+                                <th>Status</th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% coupons.forEach(coupon => { %>
+                                <tr>
+                                    <td><%= coupon.code %></td>
+                                    <td><%= coupon.discountType %></td>
+                                    <td>
+                                        <% if (coupon.discountType === 'amount') { %>
+                                            $<%= coupon.discountAmount %>
+                                        <% } else { %>
+                                            <%= coupon.discountPercentage %>%
+                                        <% } %>
+                                    </td>
+                                    <td><%= coupon.description %></td>
+                                    <td><%= new Date(coupon.expiresAt).toLocaleDateString() %></td>
+                                    <td><%= coupon.useageLimit %></td>
+                                    <td>$<%= coupon.min_purchase_amount %></td>
+                                    <td>$<%= coupon.max_discount %></td>
+                                    <td><%= coupon.isActive ? 'Active' : 'Inactive' %></td>
+                                    
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include('../layoutAdmin/footer.ejs') %>

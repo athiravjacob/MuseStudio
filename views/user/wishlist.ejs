@@ -166,241 +166,103 @@
                 <div class="breadcrumb">
                     <a href="index.html" rel="nofollow">Home</a>
                     <span></span> Shop
-                    <span></span> Your Cart
+                    <span></span> Wishlist
                 </div>
             </div>
         </div>
         <section class="mt-50 mb-50">
+            <%if(!wishlistItems || wishlistItems.length == 0){%>
+                <div class="text-center">
+                    <p class="lead">You haven't wishlisted any items yet.</p>
+                    <a class="btn btn-primary" href="/shop">Start Shopping</a>
+                </div>
+           
+            <% }else if(wishlistItems && wishlistItems.length >0){ %>
             <div class="container">
                 <div class="row">
-                    <% if(cart && cart.items.length >0){ %>
                     <div class="col-12">
                         <div class="table-responsive">
-                            <table class="table shopping-summery text-center clean">
+                            <table class="table shopping-summery text-center">
                                 <thead>
                                     <tr class="main-heading">
-                                        <th scope="col">Image</th>
-                                        <th scope="col">Name</th>
+                                        <th scope="col" colspan="2">Product</th>
                                         <th scope="col">Price</th>
-                                        <th scope="col">Quantity</th>
-                                        <th scope="col">Subtotal</th>
+                                        <th scope="col">Stock Status</th>
+                                        <th scope="col">Action</th>
                                         <th scope="col">Remove</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if(cart && cart.items.length > 0){ %>
-                                        <% cart.items.forEach(item =>{%>
-                                        <tr>
-                                            <td class="image product-thumbnail"><img src="/<%=item.productId.images[0] %>" alt="#"></td>
-                                            <td class="product-des product-name">
-                                                <h5 class="product-name"><a href="shop-product-right.html"><%=item.productId.name %></a></h5>
-                                            </td>
-                                            <td class="price" data-title="Price"><span><%=item.price %></span></td>
-                                            <td class="text-center" data-title="Stock">
-                                                <div class="detail-qty border radius m-auto qty-box">
-                                                    <a href="#" onclick="qtydown('<%=item.productId._id%>')" class="qty-down qty-btn"><i class="fi-rs-angle-small-down"></i></a>
-                                                    <% if(item.quantity > item.productId.quantity)
-                                                    {
-                                                        qty =item.productId.quantity
-                                                    }else {qty = item.quantity
-                                                    }%>
-                                                    <% console.log(qty) %>
-                                                    <span class="qty-val" id="qtyValue_<%=item.productId._id%>"><%=qty %></span>
-                                                    <a href="#" onclick="qtyup('<%=item.productId._id %>','<%=item.productId.quantity%>')" class="qty-up qty-btn"><i class="fi-rs-angle-small-up"></i></a>
-                                                </div>
-                                            </td>
-                                            <td class="text-right" data-title="Cart">
-                                                <span><%=item.price * item.quantity %> </span>
-                                            </td>
-                                            <td class="action" data-title="Remove"><a href="#" class="text-muted"><i class="fi-rs-trash" onclick="removeItem('<%=item.productId._id%>')"></i></a></td>
-                                        </tr>
-                                    <% }) %>
-                                    <%} %>
-                                    
+                                    <% wishlistItems.forEach((item)=>{%>
                                     <tr>
-                                        <td colspan="6" class="text-end">
-                                            <a href="#" onclick="clearCart()" class="text-muted"> <i class="fi-rs-cross-small"></i> Clear Cart</a>
+                                        <td class="image product-thumbnail"><img src="/<%=item.images[0] %>" alt="#"></td>
+                                        <td class="product-des product-name">
+                                            <h5 class="product-name"><a href="shop-product-right.html"><%=item.name%></a></h5>
+                                            
                                         </td>
+                                        <td class="price" data-title="Price"><span>$<%=item.price%> </span></td>
+                                        <td class="text-center" data-title="Stock">
+                                            <% if(item.quantity > 0){ %>
+                                            <span class="text-success font-weight-bold">In Stock</span>
+                                            <% }else{ %>
+                                            <span class="text-danger font-weight-bold">Out Of Stock</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-right" data-title="Cart">
+                                            <% if(item.quantity > 0){ %>
+                                                <button class="btn btn-sm" onclick="addtoCart('<%=item._id%>','<%=item.price%>','<%=item.quantity%>')"><i class="fi-rs-shopping-bag mr-5"></i>Add to cart</button>
+                                                <% }else{ %>
+                                                    <button class="btn btn-sm"><i class="fi-rs-shopping-bag mr-5"></i>Notify</button>
+                                                    <% } %>
+                                        </td>
+                                        <td class="action" data-title="Remove"><a href=""  onclick="remove_from_wishlist('<%=item._id%>')"><i class="fi-rs-trash"></i></a></td>
                                     </tr>
+                               <% })%>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="cart-action text-end">
-                            <a class="btn " href="/shop"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
-                        </div>
-                        <div class="divider center_icon mt-50 mb-50"><i class="fi-rs-fingerprint"></i></div>
-                        <div class="row mb-50">
-                            <!-- Coupon Section -->
-                            <div class="col-lg-6 col-md-12 mb-4">
-                                <div class="p-4 border rounded shadow-sm">
-                                    <div class="heading_s1 mb-3">
-                                        <h4>Apply Coupon</h4>
-                                    </div>
-                                    <div class="coupon">
-                                        <form action="#" id="couponForm">
-                                            <div class="form-row row">
-                                                <div class="form-group col-lg-8 col-md-8 col-sm-12 mb-3">
-                                                    <select id="availableCoupons" class="form-control mb-2">
-                                                        <option value="">Select available coupon</option>
-                                                        <% if(coupon){ %>
-                                                            <% coupon.forEach(coup=>{%>
-                                                                <% if(coup.useageLimit > coup.used && cart.totalPrice >=coup.min_purchase_amount ){ %>
-                                                                <option value="<%=coup.code%>"><%=coup.code%></option>
-                                                           <% }}) %>
-                                                        <% } %>
-                            
-                                                    </select>
-                                                    <button onclick="applyCoupon()" class="btn btn-primary ">Apply Coupon</button>   
-                                                        
-                                                             
-                                               </div>
-                                              
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        
-                            <!-- Cart Totals Section -->
-                            <div class="col-lg-6 col-md-12">
-                                <div class="p-4 border rounded shadow-sm">
-                                    <div class="heading_s1 mb-3">
-                                        <h4>Cart Totals</h4>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <tbody>
-                                                <% if(cart.items.length > 0){ %>
-                                                <tr>
-                                                    <td class="cart_total_label">Cart Subtotal</td>
-                                                    <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$<%= cart.totalPrice %></span></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cart_total_label">Coupon Discount</td>
-                                                    
-                                                    <td class="cart_total_amount"><i class="ti-gift mr-5"></i> <%=cart.couponDiscount %></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cart_total_label">Total</td>
-                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= cart.shippingTotal %></span></strong></td>
-                                                </tr>
-                                                <% } else { %>
-                                                <tr>
-                                                    <td colspan="2" class="text-center">Your cart is empty.</td>
-                                                </tr>
-                                                <% } %>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <a href="/checkout" class="btn btn-primary w-100 mt-3">
-                                        <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                       
-                        
-                        
-
-                    <% }else{ %>
-                        <div class="col-12">
-                            <h3 class="text-center text-brand fw-bolder "> Your cart is empty</h3>
-
-                            <a href="/shop" class="btn "><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
-
-                        </div>
-                    <%} %>
+                    </div>
                 </div>
             </div>
+            <%} %>
+            
         </section>
     </main>
     <script>
-        // ********************************** Clear Cart
-        const clearCart = async()=>{
-            try {
-                const response = await fetch(`/cart/deleteCart`,{
-                    method:'DELETE',
-                    headers :{
-                        'content-Type' : "application/json"
-                    }
-                })
-                if(response.ok){
-                    window.location.reload()
+        const addtoCart = async(productid,productPrice,availableQty)=>{
+        try {
+            
+            const response = await fetch(`/cart/addtoCart`,{
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    },
+                body: JSON.stringify({productid ,productPrice,productQty:1})
+            })
+           const data = await response.json()
+
+        if (response.ok) {
+            console.log('added to cart')
+            await remove_from_wishlist(productid) 
+        } 
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const remove_from_wishlist = async(productId)=>{
+        try {
+            const response = await fetch(`/wishlist/remove?product=${productId}`,{
+                method:"PATCH",
+                headers:{
+                    "Content-Type":"application/json"
                 }
-                
-            } catch (error) {
-             console.log(error)   
-            }
+            })
+            if(response.ok) window.location.reload()
+        } catch (error) {
+console.log(error)
         }
-
-        // ********************************** Remove Item
-        const removeItem =async(productId)=>{
-            try {
-                const response = await fetch(`/cart/removeItem/${productId}`,{
-                    method :"PATCH",
-                    "Content-Type": "application/json"
-
-                })
-                if(response.ok) window.location.reload()
-            } catch (error) {
-                console.log(error)
-            }
-        }
-        // *************************** change quantity 
-        const qtyup = async(id,stock)=>{
-           try {
-            const qtyValue = document.getElementById(`qtyValue_${id}`)
-            const qty = parseInt(qtyValue.textContent,10)
-            if(qty < 5 && stock >qty){
-                qtyValue.textContent =qty+1
-                const response = await fetch(`/cart/changeQty/${id}`,{
-                    method:'PATCH',
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify({qty:1})
-                })
-                if(response.ok) window.location.reload()
-            }else alert("Maximum quantity added ")
-           } catch (error) {
+    }
             
-           }
-
-        }
-
-        const qtydown = async(id)=>{
-           try {
-            const qtyValue = document.getElementById(`qtyValue_${id}`)
-            const qty = parseInt(qtyValue.textContent,10)
-            if(qty >1){
-                qtyValue.textContent =qty-1
-                const response = await fetch(`/cart/ChangeQty/${id}`,{
-                    method:'PATCH',
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify({qty:-1})
-                })
-                if(response.ok) window.location.reload()
-            }
-           } catch (error) {
-            
-           }
-
-        }
-
-        const applyCoupon = async()=>{
-            const coupon = document.getElementById('availableCoupons').value
-            if(coupon != ''){
-                const response = await fetch(`/cart/applycoupon/${coupon}`,{
-                    method : "PATCH",
-                    headers :{
-                        'Content-Type' :'application/json'
-                    }
-                })
-                if(response.ok) window.location.reload()
-            }
-        }
     </script>
    <%-include('../layoutUser/footer.ejs') %>

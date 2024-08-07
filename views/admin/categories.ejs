@@ -97,6 +97,24 @@
                     </div> <!-- .row // -->
                 </div> <!-- card body .// -->
             </div> <!-- card .// -->
+             <!-- Pagination -->
+             <% if(totalPages >1){ %>
+             <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-start">
+                       <%if(currentPage != 1){ %>
+                        <li class="page-item"><a class="page-link" href="/admin/category?pageno=<%=Number(currentPage) -1 %>">Prev</a></li>
+                        <% } %>
+                        <% for(let i =1;i<=totalPages ;i++) {%>
+                        <li class="page-item "><a class="page-link" href="/admin/category?pageno=<%=i %>"><%=i %></a></li>
+                        <% } %>
+                        <% if(currentPage != totalPages){ %>
+                        <li class="page-item"><a class="page-link" href="/admin/category?pageno=<%=Number(currentPage) +1 %>">Next</a></li>
+                        <% }%>
+                    </ul>
+                </nav>
+            </div> 
+            <% } %>
         </section> <!-- content-main end// -->
         <script>
             const deleteCategory =async(id)=>{

@@ -7,7 +7,9 @@ const orderSchema = new mongoose.Schema({
         required:true
     },
     cart :[{
-        productId :mongoose.Schema.Types.ObjectId,
+        productId :{
+            type:mongoose.Schema.Types.ObjectId,
+            ref : 'product'},
         productname: String,
         price:Number,
         quantity:Number 
@@ -27,7 +29,10 @@ const orderSchema = new mongoose.Schema({
         default:'processing'  
       },
       totalPrice:Number,
+      discount:Number,
       totalQuanity:Number,
+      shippingTotal :Number,
+      transactionId :String,
       
     deliveryAddress:{
         type:String,

@@ -389,11 +389,11 @@
                                             </div>
                                             <div class="product-extra-link2">
                                                 <% if(product.quantity > 0){%>
-                                                    <button  onclick="addToCart('<%=product._id%>','<%=product.price%>')" id="addtocart-btn" class="button button-add-to-cart">Add to cart</button>
+                                                    <button  onclick="addToCart('<%=product._id%>','<%=product.price%>','<%=product.quantity%>')" id="addtocart-btn" class="button button-add-to-cart">Add to cart</button>
                                                 <%}else{ %>
                                                 <h5  class="text-danger">SOLD OUT</h5>
                                                 <% } %>
-                                                <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                                <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#" onclick="wishlist('<%=product._id %>')"><i class="fi-rs-heart"></i></a>
                                             </div>
                                         </div>
                                         
@@ -576,7 +576,7 @@
                                                     <div class="product-action-1">
                                                         <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
 "><i class="fi-rs-search"></i></a>
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="#"  tabindex="0"><i class="fi-rs-heart"></i></a>
                                                         <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
                                                     </div>
                                                     <div class="product-badges product-badges-position product-badges-mrg">
@@ -664,8 +664,9 @@
 
       /////////////////////////////// ADD TO CART //////////////////////////////
       
-      const addToCart = async(productid,productPrice)=>{
+      const addToCart = async(productid,productPrice,availableQty)=>{
         const productQty = document.getElementById('productQty').textContent
+        
         console.log(`quantity :${productQty}`)
         try {
 
@@ -679,19 +680,56 @@
            const data = await response.json()
         
         if (response.ok) {
-            alert("product added to the cart")
+            console.log("dd")
+            showToast("Product added to the cart")
            
-        } else if (data.redirect) {
-            window.location.href = data.redirectUrl
-        } else {
-            alert(data.message || "An error occurred")
-        }
+        } 
         } catch (error) {
             console.log(error)
         }
     }
      
-    
+    //////////////////////////// WISHLIST ///////////////////////
+    const wishlist = async(id)=>{
+        try {
+            const response = await fetch("/wishlist",{
+                method:'POST',
+                headers:{'Content-Type':"application/json"},
+                body:JSON.stringify({productId:id})
+            })
+            if(response.ok) window.location.reload()
+        } catch (error) {
+            
+        }
+    }
+
+    /// SHOW TOAST
+
+    function showToast(message, type = "success") {
+    // Create toast element
+    const toast = document.createElement('div')
+    toast.className = `toast ${type}`
+    toast.textContent = message
+        console.log("toast")
+    // Style the toast
+    toast.style.position = 'fixed'
+    toast.style.bottom = '20px'
+    toast.style.right = '20px'
+    toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#F44336'
+    toast.style.color = 'white'
+    toast.style.padding = '15px'
+    toast.style.borderRadius = '5px'
+    toast.style.zIndex = '1000'
+
+    // Add toast to body
+    document.body.appendChild(toast)
+
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+        toast.remove()
+    }, 3000)
+}
+
 
     </script>
    <%-include('../layoutUser/footer.ejs') %>

@@ -53,14 +53,25 @@ userRoute.post('/cart/addtoCart',userControl.addtoCart)
 userRoute.delete('/cart/deleteCart',userControl.deleteCart)
 userRoute.patch('/cart/removeItem/:id',userControl.removeItem)
 userRoute.patch('/cart/changeQty/:id',userControl.changeQty)
+userRoute.patch('/cart/applycoupon/:code',userControl.applyCoupon)
+
 
 userRoute.get('/checkout',userControl.checkout)
 userRoute.patch('/checkout/changeAddress',userControl.checkoutAddress)
 
 userRoute.post('/placeOrder',userControl.placeOrder)
 userRoute.get('/confirmOrder',userControl.confirmOrder)
+userRoute.post('/create-paypal-order', userControl.createPayPalOrder)
 
 userRoute.get('/orders',userControl.orders)
+userRoute.patch('/orders/cancel',userControl.cancelOrder)
+
+
+userRoute.get('/wishlist',userControl.wishlist)
+userRoute.post('/wishlist',userControl.addtoWishlist)
+userRoute.patch('/wishlist/remove',userControl.removefromWishlist)
+
+
 
 
 

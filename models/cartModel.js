@@ -34,13 +34,21 @@ const cartSchema = new mongoose.Schema({
     totalQuantity : {
         type : Number,
         default :0
-        }
+        },
+    couponDiscount :{
+        type :Number,
+        default:0
+    },
+    shippingTotal :Number
+       
+    
 
 })
 
 cartSchema.pre('save', function(next){
     this.totalPrice = this.items.reduce((acc,item)=> acc + item.price * item.quantity ,0)
     this.totalQuantity = this.items.reduce((acc,item)=> acc + item.quantity ,0)
+    this.shippingTotal = this.totalPrice - this.couponDiscount
     next()
 })
 const cartModel = mongoose.model('cart',cartSchema)
