@@ -13,7 +13,7 @@
         <%- include('../layoutAdmin/navigation.ejs') %>
        
         <div class="container mt-5 p-3">
-            <h2 class="m-4"><%=heading %></h2>
+            <h2 id="heading" class="m-4"><%=heading %></h2>
             
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -36,7 +36,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Overall Sales Count</h6>
-                            <p class="overall-stats text-success"><%=salesCount %></p>
+                            <p class="overall-stats text-success" id="salesCount"><%=salesCount %></p>
                         </div>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Overall Order Amount</h6>
-                            <p class="overall-stats">₹<%=totalSalesAmount.toFixed(1) %></p>
+                            <p class="overall-stats" id="salesAmt">$ <%=totalSalesAmount.toFixed(1) %></p>
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Overall Discount</h6>
-                            <p class="overall-stats">₹<%=totDiscount.toFixed(1) %></p>
+                            <p class="overall-stats" id="discount">$ <%=totDiscount.toFixed(1) %></p>
                         </div>
                     </div>
                 </div>
@@ -85,9 +85,9 @@
                     <tr>
                         <td><%= sale.date %></td>
                         <td><%= sale.totalOrders %></td>
-                        <td>₹<%= sale.grossSales %></td>
-                        <td>₹<%= sale.couponDiscount %></td>
-                        <td>₹<%= Number(sale.grossSales) - Number(sale.couponDiscount) %></td>
+                        <td>$<%= sale.grossSales %></td>
+                        <td>$<%= sale.couponDiscount %></td>
+                        <td>$<%= Number(sale.grossSales) - Number(sale.couponDiscount) %></td>
                     </tr>
                     <% 
                         }); 
@@ -98,40 +98,60 @@
                     <tr>
                         <th>Total :</th>
                         <td><%= totalOrders %></td>
-                        <td>₹<%= totalGrossSales.toFixed(1) %></td>
-                        <td>₹<%= totalCouponDiscount.toFixed(1) %></td>
-                        <td>₹<%= totalNetSales.toFixed(1) %></td>
+                        <td>$<%= totalGrossSales.toFixed(1) %></td>
+                        <td>$<%= totalCouponDiscount.toFixed(1) %></td>
+                        <td>$<%= totalNetSales.toFixed(1) %></td>
                     </tr>
                 </tfoot>
             </table>
-            <button class="btn btn-primary my-4" onclick="download('<%=sales%>','<%=salesCount%>','<%=totalSalesAmount%>','<%=totDiscount%>','<%=heading%>')"  >Download PDF</a>
+            <button class="btn btn-primary my-4" onclick="downloadPdf('<%=heading%>')"  >Download PDF</button>
+            <button class="btn btn-primary my-4" onclick="downloadExcel()"  >Download Excel</button>
 
   
             
         </div>
         <script>
-            const download = async(sales, salesCount, totalSalesAmount, totalDiscount, heading) => {
+            const downloadPdf = async(heading) => {
             try {
-                const data = {
-                    sales: JSON.stringify(sales), 
-                    salesCount,
-                    totalSalesAmount,
-                    totalDiscount,
-                    heading
-                };
-                const params = new URLSearchParams(data);
-                const response = await fetch(`/admin/dashboard/download_salesreport?${params}`, {
-                    method: "GET",
-                    headers: {'Content-Type': 'application/json'}
-                });
-                // Handle the response here
+                console.log("download")
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const table = document.querySelector('table');
+                const heading = document.getElementById('heading').innerText
+                const salesCount =document.getElementById('salesCount').innerText
+                const discount = document.getElementById('discount').innerText
+                const salesAmt =document.getElementById('salesAmt').innerText
+
+                doc.setFontSize(22);
+                doc.text(heading, 20, 20);
+
+                // Add the overall stats
+                doc.setFontSize(14);
+                doc.text(`Overall Sales Count: ${salesCount}`, 20, 40);
+                doc.text(`Overall Order Amount: ${salesAmt}`, 20, 50);
+                doc.text(`Overall Discount: ${discount}`, 20, 60);
+
+                doc.autoTable({ html: table, startY: 70 });
+                doc.save('sales-report.pdf');
+
+                            // Handle the response here
             } catch (error) {
                 console.log(error);
             }
         };
 
-            const customDate = async(search)=>{
-                try {
+        const downloadExcel = () => {
+            try {
+                console.log("excel download")
+                const ws = XLSX.utils.table_to_sheet(document.querySelector('table'));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
+                XLSX.writeFile(wb, 'sales-report.xlsx');
+            } catch (error) {
+                console.log(error)
+            }
+        };
+        const findDate = (search)=>{
                     let startDate
                     let endDate
                     if(search ==''){
@@ -154,8 +174,15 @@
                         let currentDate = new Date(); 
                         startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
                     }
-                   console.log(search)
-                   console.log(startDate)
+
+                    return {
+                        startDate,endDate
+                    }
+        }
+
+            const customDate = async(search)=>{
+                try {
+                    const {startDate,endDate}= findDate(search)
                     const response = await fetch(`/admin/dashboard?startDate=${startDate}&endDate=${endDate}&search=${search}`,{
                         method:"GET",
                         headers:{'Content-Type':'application/json'}
@@ -173,4 +200,7 @@
 
            
         </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.19/jspdf.plugin.autotable.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
  <%- include('../layoutAdmin/footer.ejs') %>

@@ -40,6 +40,67 @@ const verifyAdmin = async (req, res)=>{
     console.log(error)
   }
 }
+
+
+const generateSalesReport = async (startDate, endDate) => {
+  try {
+    let matchQuery = { orderStatus: { $ne: 'canceled' } };
+    if (startDate && endDate) {
+      matchQuery.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
+    // Sales count
+    const salesCount = await orderModel.find(matchQuery).countDocuments();
+
+    // Sales Amount
+    const salesAmountResult = await orderModel.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, total: { $sum: '$totalPrice' } } }
+    ]);
+    const totalSalesAmount = salesAmountResult.length > 0 ? salesAmountResult[0].total : 0;
+
+    // Discount
+    const discountResult = await orderModel.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, totalDiscount: { $sum: '$discount' } } }
+    ]);
+    const totDiscount = discountResult.length > 0 ? discountResult[0].totalDiscount : 0;
+
+    // Sales report
+    const sales = await orderModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          totalOrders: { $sum: 1 },
+          grossSales: { $sum: '$totalPrice' },
+          couponDiscount: { $sum: '$discount' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          totalOrders: 1,
+          grossSales: 1,
+          couponDiscount: 1
+        }
+      }
+    ]);
+
+    return {
+      salesCount,
+      totalSalesAmount,
+      totDiscount,
+      sales
+    };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+
 // ************************Dashboard
 const loadDashboard = async (req, res) => {
     try {
@@ -47,7 +108,6 @@ const loadDashboard = async (req, res) => {
       const endDate = req.query.endDate ? new Date(req.query.endDate + 'T23:59:59.999Z') : null;
       const {search} = req.query
       let options = { year: 'numeric', month: 'short', day: 'numeric' };
-      let matchQuery ={orderStatus:{$ne:'canceled'}}
       let heading = "Sales Report"
       if(search == 'week') heading = "Sales Report For This Week"
       if(search == 'today') heading = "Sales Report For Today"
@@ -56,14 +116,9 @@ const loadDashboard = async (req, res) => {
         heading = `Sales Report from ${startDate.toLocaleDateString('en-US', options)} to ${endDate.toLocaleDateString('en-US', options)}`
       }
 
-      if(startDate && endDate){
-        matchQuery.createdAt = {$gte:startDate,$lte:endDate}
-      }
-      
+      const {salesCount,totalSalesAmount,totDiscount,sales} =await generateSalesReport(startDate,endDate)
 
-      //Sales count
-      const salesCount = await orderModel.find(matchQuery).countDocuments()
-      console.log(salesCount)
+         
       if (salesCount === 0) {
         // No orders found for the given period
         return res.render("dashboard", {
@@ -77,40 +132,7 @@ const loadDashboard = async (req, res) => {
         });
       }
 
-      //Sales Amount
-      const salesAmount = await orderModel.aggregate([
-        {$match:matchQuery},
-        {$group:{_id:null,total : {$sum:'$totalPrice'}}}
-      ])
-      const totalSalesAmount = salesAmount[0].total 
-
-      //Discount
-      const discount = await orderModel.aggregate([
-        {$match:matchQuery},
-        {$group:{_id:null,totalDiscount : {$sum:'$discount'}}}
-      ])
-      const totDiscount = discount[0].totalDiscount || 0
-      
-
-      //Sales report
-      const sales = await orderModel.aggregate([
-        {$match:matchQuery},
-        {$group:{
-          _id: {$dateToString: { format: "%Y-%m-%d", date: "$createdAt" }},
-          totalOrders:{$sum:1},
-          grossSales:{$sum:'$totalPrice'},
-          couponDiscount :{$sum:'$discount'}
-        }},
-        {
-          $project: {
-              _id: 0, 
-              date: "$_id", 
-              totalOrders: 1 ,
-              grossSales:1,
-              couponDiscount:1
-          }
-      }
-      ])
+     
       console.log(sales)
 
       res.render("dashboard",{
@@ -127,89 +149,10 @@ const loadDashboard = async (req, res) => {
         }
       }
 
-    
-  // Download pdf Sales Report
 
-  const downloadPdf = async (req, res) => {
-    try {
-      const doc = new PDFDocument();
-      console.log(req.query);
-      const { sales, heading, salesCount, totalSalesAmount, totalDiscount } = req.query;
-    
-      res.setHeader('Content-type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
-      doc.pipe(res);
-    
-      // Add header
-      doc.fontSize(18).text(heading, { align: 'center' });
-      doc.moveDown();
-    
-      // Add overall statistics
-      doc.fontSize(12);
-      doc.text(`Overall Sales Count: ${salesCount}`);
-      doc.text(`Overall Order Amount: ₹${totalSalesAmount}`);
-      doc.text(`Overall Discount: ₹${totalDiscount}`);
-      doc.moveDown();
-    
-      // Add table header
-      doc.fontSize(10);
-      const tableTop = 150;
-      const tableLeft = 50;
-      const colWidths = [80, 60, 80, 100, 80];
-    
-      doc.text('Date', tableLeft, tableTop);
-      doc.text('Orders', tableLeft + colWidths[0], tableTop);
-      doc.text('Gross Sales', tableLeft + colWidths[0] + colWidths[1], tableTop);
-      doc.text('Coupon Deductions', tableLeft + colWidths[0] + colWidths[1] + colWidths[2], tableTop);
-      doc.text('Net Sales', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], tableTop);
-    
-      // Add table content
-      const salesData = JSON.parse(sales);
-      let yPosition = tableTop + 20;
-    
-      salesData.forEach((sale, index) => {
-        const rowColor = index % 2 === 0 ? '#FFFFFF' : '#F0F0F0';
-        
-        doc.rect(tableLeft, yPosition - 5, 400, 20).fill(rowColor);
-        
-        doc.text(sale.date, tableLeft, yPosition);
-        doc.text(sale.totalOrders.toString(), tableLeft + colWidths[0], yPosition);
-        doc.text(`₹${sale.grossSales}`, tableLeft + colWidths[0] + colWidths[1], yPosition);
-        doc.text(`₹${sale.couponDiscount}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2], yPosition);
-        doc.text(`₹${(Number(sale.grossSales) - Number(sale.couponDiscount)).toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPosition);
-    
-        yPosition += 20;
-    
-        if (yPosition > 700) {
-          doc.addPage();
-          yPosition = 50;
-        }
-      });
-    
-      // Add totals row
-      const totals = salesData.reduce((acc, sale) => {
-        acc.totalOrders += Number(sale.totalOrders);
-        acc.totalGrossSales += Number(sale.grossSales);
-        acc.totalCouponDiscount += Number(sale.couponDiscount);
-        acc.totalNetSales += Number(sale.grossSales) - Number(sale.couponDiscount);
-        return acc;
-      }, { totalOrders: 0, totalGrossSales: 0, totalCouponDiscount: 0, totalNetSales: 0 });
-    
-      doc.rect(tableLeft, yPosition - 5, 400, 20).fill('#E0E0E0');
-      doc.font('Helvetica-Bold');
-      doc.text('Total:', tableLeft, yPosition);
-      doc.text(totals.totalOrders.toString(), tableLeft + colWidths[0], yPosition);
-      doc.text(`₹${totals.totalGrossSales.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1], yPosition);
-      doc.text(`₹${totals.totalCouponDiscount.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2], yPosition);
-      doc.text(`₹${totals.totalNetSales.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPosition);
-    
-      // Finalize the PDF and end the stream
-      doc.end();
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      res.status(500).send('Error generating PDF');
-    }
-  }
+
+
+
   // ************************** View Customers
   const loadCustomers = async (req, res) => {
     try {
@@ -639,7 +582,6 @@ module.exports ={
   loadLogin,
   verifyAdmin,
   loadDashboard,
-  downloadPdf,
   loadCustomers,
   blockCustomer,
   unblockCustomer,
