@@ -54,6 +54,8 @@ userRoute.delete('/cart/deleteCart',userControl.deleteCart)
 userRoute.patch('/cart/removeItem/:id',userControl.removeItem)
 userRoute.patch('/cart/changeQty/:id',userControl.changeQty)
 userRoute.patch('/cart/applycoupon/:code',userControl.applyCoupon)
+userRoute.patch('/cart/removeCoupon',userControl.removeCoupon)
+
 
 
 userRoute.get('/checkout',userControl.checkout)

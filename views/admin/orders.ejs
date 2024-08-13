@@ -72,11 +72,14 @@
                                         <a href="#" class="btn btn-md rounded font-sm">Detail</a>
                                         <div class="dropdown">
                                             <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
+                                            <% if(order.orderStatus !== 'delivered'){ %>
                                             <div class="dropdown-menu">
+                                           
                                                 <a class="dropdown-item" href="#" onclick="editStatus('<%=order._id %>','shipped')">Shipped</a>
                                                 <a class="dropdown-item" href="#" onclick="editStatus('<%=order._id %>','delivered')">Delivered</a>
                                                 <a class="dropdown-item text-danger" href="#" onclick="editStatus('<%=order._id %>','cancelled')">Cancel Order</a>
                                             </div>
+                                            <% } %>
                                         </div> <!-- dropdown //end -->
                                     </td>
                                 </tr>

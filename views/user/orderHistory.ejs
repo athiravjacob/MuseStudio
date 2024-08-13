@@ -41,7 +41,7 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
-                            <% if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'delivered') { %>
+                            <% if (order.orderStatus !== 'canceled' && order.orderStatus !== 'delivered') { %>
                                 <button type="button" class="btn btn-outline-danger btn-sm float-end cancel-order-btn" onclick="cancelOrder('<%= order._id %>')"  data-order-id="<%= order._id %>" >Cancel Order</button>
                             <% } %>
                         </div>

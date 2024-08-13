@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>This Week Sales Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-body {
+            padding: 1rem;
+        }
+        .overall-stats {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">This Week Sales Report</h2>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="date" class="form-control" placeholder="dd-mm-yyyy">
+                    <span class="input-group-text">to</span>
+                    <input type="date" class="form-control" placeholder="dd-mm-yyyy">
+                    <button class="btn btn-primary" type="button">Apply</button>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-primary">Today's</button>
+                <button class="btn btn-primary">This Week</button>
+                <button class="btn btn-primary">This Month</button>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Overall Sales Count</h6>
+                        <p class="overall-stats text-success">19</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Overall Order Amount</h6>
+                        <p class="overall-stats">₹335263.64</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Overall Discount</h6>
+                        <p class="overall-stats">₹8710</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Orders</th>
+                    <th>Gross Sales</th>
+                    <th>Discounts</th>
+                    <th>Coupon Deductions</th>
+                    <th>Net Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2024-08-04</td>
+                    <td>9</td>
+                    <td>₹8500</td>
+                    <td>₹0</td>
+                    <td>₹0</td>
+                    <td>₹8500</td>
+                </tr>
+                <tr>
+                    <td>2024-08-05</td>
+                    <td>1</td>
+                    <td>₹8500</td>
+                    <td>₹0</td>
+                    <td>₹0</td>
+                    <td>₹8500</td>
+                </tr>
+                <tr>
+                    <td>2024-08-09</td>
+                    <td>3</td>
+                    <td>₹23500</td>
+                    <td>₹0</td>
+                    <td>₹0</td>
+                    <td>₹23500</td>
+                </tr>
+            </tbody>
+            <tfoot class="table-light">
+                <tr>
+                    <th>Total :</th>
+                    <td>13</td>
+                    <td>₹40500</td>
+                    <td>₹0</td>
+                    <td>₹0</td>
+                    <td>₹40500</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="text-end mt-3">
+            <button class="btn btn-primary">Download PDF</button>
+            <button class="btn btn-primary">Download Excel</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

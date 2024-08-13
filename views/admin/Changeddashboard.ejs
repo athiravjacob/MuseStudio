@@ -1,0 +1,220 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Evara Dashboard</title>
+<%-include('../layoutAdmin/header.ejs') %>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include('../layoutAdmin/asideMenu.ejs') %>
+    <main class="main-wrap">
+        <%- include('../layoutAdmin/navigation.ejs') %>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Dashboard </h2>
+                    <p>Whole data about your business here</p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-primary-light"><i class="text-primary material-icons md-monetization_on"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Revenue</h6>
+                                <span>$<%=revenue %></span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-success-light"><i class="text-success material-icons md-local_shipping"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Orders </h6> <span><%=totalOrders %></span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-warning-light"><i class="text-warning material-icons md-qr_code"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Products</h6> <span><%=totalProducts %></span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-info-light"><i class="text-info material-icons md-shopping_basket"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Discount</h6> <span><%=discount %></span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="card mb-4">
+                <header class="card-header">
+                    <h4 class="card-title">Latest orders</h4>
+                    <div class="row align-items-end">
+                      
+                        <div class="col-md-2 col-6">
+                            <label for="startDate">From</label>                           
+                            <input type="date" id="startDate"  class="form-control" value="<%=searchFrom %>">
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <label for="endDate">Till</label>                           
+                            <input type="date" id="endDate"  class="form-control" value="<%=searchTill %>">
+                        </div>
+                       
+                        <div class="col-md-2 col-6">
+                            <div class="custom_select">
+                                <select name="searchOption" id="searchOption" class="form-select select-nice" >
+                                    <option value="" selected>All</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="pending">pending</option>
+                                    <option value="refunded">Refund</option>
+                                    <option value="canceled">order Canceled</option>
+                                    <option value="delivered">delivered</option>
+                                    <option value="shipped">shipped</option>
+                                    <option value="processing">processing</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <button class="btn btn-primary" onclick="dateSearch()">Show</button>
+                        </div>
+                    </div>
+                </header>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-nowrap mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="text-center">
+                                            <div class="form-check align-middle">
+                                                <input class="form-check-input" type="checkbox" id="transactionCheck01">
+                                                <label class="form-check-label" for="transactionCheck01"></label>
+                                            </div>
+                                        </th>
+                                        <th class="align-middle" scope="col">Order ID</th>
+                                        <th class="align-middle" scope="col">Billing Name</th>
+                                        <th class="align-middle" scope="col">Date</th>
+                                        <th class="align-middle" scope="col">Total</th>
+                                        <th class="align-middle" scope="col">Order Status</th>
+                                        <th class="align-middle" scope="col">Payment Status</th>
+                                        <th class="align-middle" scope="col">Payment Method</th>
+                                        <th class="align-middle" scope="col">View Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if(orderDetails && orderDetails.length > 0){%>
+                                        <% console.log(`no of orders = ${orderDetails.length}`) %>
+                                        <% orderDetails.forEach(order => { %>
+                                              
+                                    <tr>
+                                        <td class="text-center">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="transactionCheck02">
+                                                <label class="form-check-label" for="transactionCheck02"></label>
+                                            </div>
+                                        </td>
+                                        <td><a href="#" class="fw-bold">#<%=order._id %></a> </td>
+                                        <td><%=order.userId.username %></td>
+                                        <td>
+                                           <%=new Date(order.createdAt).toLocaleDateString()  %>
+                                        </td>
+                                        <td>
+                                           <%=order.shippingTotal %>
+                                        </td>
+                                        <% if(order.orderStatus ==='canceled' ) {%>
+                                            <td>
+                                                <span class="text-danger"><%=order.orderStatus %></span>
+                                            </td>
+                                        <% }else{ %>
+                                            <td>
+                                                <span class="text-success"><%=order.orderStatus %></span>
+                                            </td>
+                                        <% } %>
+                                        <% if(order.paymentStatus ==='refunded' ) {%>
+                                        <td>
+                                            <span class="badge badge-pill badge-soft-warning"><%=order.paymentStatus %></span>
+                                        </td>
+                                        <% }else if(order.paymentStatus ==='paid' ){ %>
+                                            <td>
+                                                <span class="badge badge-pill badge-soft-success"><%=order.paymentStatus %></span>
+                                            </td>
+                                        <% } else{%>
+                                            <td>
+                                                <span class="badge badge-pill badge-soft-primary"><%=order.paymentStatus %></span>
+                                            </td>
+                                        <% } %>
+                                        <td>
+                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> <%=order.paymentOption %>
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-xs"> View details</a>
+                                        </td>
+                                    </tr>
+                                    <%}); %>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div> <!-- table-responsive end// -->
+                </div>
+            </div>
+            <div class="pagination-area mt-30 mb-50">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-start">
+                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
+                        <li class="page-item"><a class="page-link" href="#">02</a></li>
+                        <li class="page-item"><a class="page-link" href="#">03</a></li>
+                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
+                        <li class="page-item"><a class="page-link" href="#">16</a></li>
+                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
+                    </ul>
+                </nav>
+            </div>
+        </section> <!-- content-main end// -->
+        <script>
+            const dateSearch = async () => {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const searchOption = document.getElementById('searchOption').value
+            
+            try {
+                const response = await fetch(`/admin/dashboard?startDate=${startDate}&endDate=${endDate}&option=${searchOption}`, {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"}
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    document.body.innerHTML = html;
+                } else {
+                    console.error('Error:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        </script>
+ <%- include('../layoutAdmin/footer.ejs') %>

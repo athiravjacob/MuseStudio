@@ -50,6 +50,8 @@
                                     <br>
                                     <li><a href="/profile">Profile </a></li>
                                     <li><a href="/orders">My Orders</a></li>
+                                    <li><a href="">My Wallet  : <%=walletBalance %></a></li>
+
                                     <li><a href="/logout">Logout</a></li>
                                 <%}else{%>
                                 <li><a href="/signup">Signup </a></li>
@@ -62,12 +64,14 @@
                         <div class="header-action-icon-2">
                             <a href="/wishlist">
                                 <img class="svgInject" alt="Evara" src="/user_assets/imgs/theme/icons/icon-heart.svg">
-                                <!-- <span class="pro-count blue">4</span> -->
+                                <!-- <span class="pro-count blue"></span> -->
                             </a>
                         </div>
                         <div class="header-action-icon-2">
                             <a class="mini-cart-icon" href="/cart">
                                 <img alt="Evara" src="/user_assets/imgs/theme/icons/icon-cart.svg">
+                                <span class="pro-count blue"><%=totalItem %></span>
+
                             </a>
                         </div>
                        

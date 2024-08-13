@@ -20,12 +20,12 @@
                             <form method="post" action="/admin/category/addCategory" id="categoryForm">
                                 <div class="mb-4">
                                     <label  class="form-label">Name</label>
-                                    <input type="text" id="nameInput" placeholder="Type here" class="form-control" name="name" />
+                                    <input type="text" id="nameInput" placeholder="Type here" class="form-control" name="name" required/>
                                 </div>
                                 
                                 <div class="mb-4">
                                     <label class="form-label">Description</label>
-                                    <textarea id="descriptionInput" placeholder="Type here" name="description" class="form-control"></textarea>
+                                    <textarea id="descriptionInput" placeholder="Type here" name="description" class="form-control" required></textarea>
                                 </div>
                                 <% if (success_msg) { %>
                                     <div style="color: green;"><%= success_msg %></div>

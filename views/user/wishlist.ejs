@@ -244,6 +244,7 @@
         if (response.ok) {
             console.log('added to cart')
             await remove_from_wishlist(productid) 
+            window.location.reload()
         } 
         } catch (error) {
             console.log(error)

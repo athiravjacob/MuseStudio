@@ -664,30 +664,37 @@
 
       /////////////////////////////// ADD TO CART //////////////////////////////
       
-      const addToCart = async(productid,productPrice,availableQty)=>{
-        const productQty = document.getElementById('productQty').textContent
-        
-        console.log(`quantity :${productQty}`)
-        try {
-
-            const response = await fetch(`/cart/addtoCart`,{
-                method : 'POST',
+    const addToCart = async (productid, productPrice, availableQty) => {
+    const productQty = document.getElementById('productQty').textContent;
+    console.log(`quantity: ${productQty}`);
+    try {
+        if (availableQty > 0) {
+            const response = await fetch(`/cart/addtoCart`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                    },
-                body: JSON.stringify({productid ,productPrice,productQty})
-            })
-           const data = await response.json()
-        
-        if (response.ok) {
-            console.log("dd")
-            showToast("Product added to the cart")
-           
-        } 
-        } catch (error) {
-            console.log(error)
+                },
+                body: JSON.stringify({ productid, productPrice, productQty })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Added to cart");
+                window.location.reload();
+            } else {
+                if (data.redirect) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.message || "Error adding to cart");
+                }
+            }
         }
+    } catch (error) {
+        console.log(error);
+        alert("Error adding to cart");
     }
+}
      
     //////////////////////////// WISHLIST ///////////////////////
     const wishlist = async(id)=>{

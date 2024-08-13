@@ -13,6 +13,7 @@ const orderModel = require('../models/orderModel')
 const couponModel = require('../models/couponModel')
 const { client } = require('../utils/paypal');
 const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
+const walletModel = require('../models/walletModel')
 require('dotenv').config()
 
 
@@ -412,47 +413,56 @@ const viewCart = async(req,res)=>{
 }
 
 //************************************* Add to cart
-const addtoCart = async(req,res)=>{
+const addtoCart = async (req, res) => {
     try {
-        const user = req.user
-        if(!user){
-            console.log("No user")
-            req.flash("error_msg","Please login to add products to cart")
-            return res.status(401).json({ 
-                redirect: true, 
+        const user = req.user;
+        if (!user) {
+            console.log("No user");
+            req.flash("error_msg", "Please login to add products to cart");
+            return res.status(401).json({
+                redirect: true,
                 redirectUrl: "/login",
                 message: "Please login to add products to cart"
-            })
-        } 
-        const {productid,productQty,productPrice} = req.body
-        console.log(`from wish ${req.body}`)
-        const product = await productModel.findById(productid)
-        if(productQty > product.quantity) productQty = product.quantity
-
-        const userId = user._id
-        let cart = await cartModel.findOne({userId}) 
-        if(!cart){
-             cart = new cartModel({userId,items:[]})
+            });
         }
 
-        const productIndex = cart.items.findIndex(item =>item.productId.toString() === productid)
-        if(productIndex > -1){
-            cart.items[productIndex].quantity +=1
-        }else{
+        const { productid, productQty, productPrice } = req.body;
+        const product = await productModel.findById(productid);
+        let quantity = Math.min(productQty, product.quantity);
+
+        const userId = user._id;
+        let cart = await cartModel.findOne({ userId });
+
+        if (!cart) {
+            cart = new cartModel({ userId, items: [] });
+        }
+
+        const productIndex = cart.items.findIndex(item => item.productId.toString() === productid);
+        if (productIndex > -1) {
+                cart.items[productIndex].quantity += quantity;
+                if(cart.items[productIndex].quantity > product.quantity){
+                    console.log(`cart quantity ${cart.items[productIndex].quantity}`)
+                    --cart.items[productIndex].quantity
+                }
+        } else {
             cart.items.push({
-                productId : productid,
-                price:productPrice,
-                quantity :productQty
-            })
+                productId: productid,
+                price: productPrice,
+                quantity: quantity
+            });
         }
-        const addedtocart =await cart.save()
 
-        if(addedtocart) res.status(200)
+        const addedtocart = await cart.save();
+        if (addedtocart) {
+            res.status(200).json({ message: "Product added to cart" });
+        } else {
+            res.status(500).json({ message: "Error adding product to cart" });
+        }
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).json({ message: "Server error" });
     }
 }
-
 // ****************************** Delete Cart
 
 const deleteCart = async(req,res)=>{
@@ -524,6 +534,7 @@ const applyCoupon = async(req,res)=>{
             discount = cart.totalPrice * coupon.discountPercentage /100
         }
         cart.couponDiscount = discount
+        coupon.used = coupon.used++
         cart.save()
         console.log(cart)
 
@@ -532,6 +543,17 @@ const applyCoupon = async(req,res)=>{
     }
 }
 
+// ***********************Remove Coupon
+const removeCoupon = async(req,res)=>{
+   try {
+    const user = req.user.id
+    const cart = await cartModel.findOne({userId:user})
+    cart.couponDiscount = 0
+    cart.save()
+   } catch (error) {
+console.log(error)
+   }
+}
 
 
 // ************************* Check Out
@@ -539,9 +561,12 @@ const checkout = async(req,res)=>{
     try {
         const user = req.user
         const cart = await cartModel.findOne({userId:user.id}).populate('items.productId')
+        const wallet = await walletModel.findOne({user:user})
+        if(wallet) walletBalance =wallet.balance
+        else walletBalance = 0
         const paypalId = process.env.PAYPAL_ID
         if(!user) return res.render("home")
-        res.render("checkout",{cart,paypalId})
+        res.render("checkout",{cart,paypalId,walletBalance})
         
        
     } catch (error) {
@@ -611,13 +636,26 @@ const placeOrder = async(req,res)=>{
         let transactionId =''
         const userId = req.user.id
         const {cartId,paymentOption,deliveryAddress} = req.body
+        const cart = await cartModel.findById(cartId).populate('items.productId')
+
         if(paymentOption == 'paypal') {
             transactionId = req.body.transactionId 
             paymentStatus ='paid'
-        }else {
+        }else if(paymentOption == 'wallet'){
+            console.log("wallet payment")
+            paymentStatus ='paid'
+            const shippingTotal = cart.shippingTotal
+            const wallet = await walletModel.findOneAndUpdate(
+                { user: userId },
+                { $inc: { balance: -shippingTotal } },  
+                { new: true }  
+            );
+             await wallet.save()
+
+        }
+        else {
             paymentStatus = 'pending'
         }
-        const cart = await cartModel.findById(cartId).populate('items.productId')
         const products = cart.items.map(item => ({
             productId:item.productId._id,
             productname: item.productId.name,
@@ -677,20 +715,48 @@ const orders =async(req,res)=>{
 
 //Cancel Order
 
-const cancelOrder = async(req,res)=>{
+const cancelOrder = async (req, res) => {
     try {
-        const user = req.user.id
-        const id = req.query.orderId
-        console.log(id)
-        const orders = await orderModel.findByIdAndUpdate(id,{orderStatus:"cancelled"})
-       
-        if(orders){
-            res.render("orderHistory",{orders})
+        const user = req.user.id;
+        const id = req.query.orderId;
+        
+        const orders = await orderModel.findById(id);
+        if (orders.paymentStatus === 'paid') {
+            const amount = orders.shippingTotal;
+            console.log(`amount: ${amount}`);
+            
+            const existing_wallet = await walletModel.findOne({ user: user });
+            if (existing_wallet) {
+                let newBalance = existing_wallet.balance + amount; 
+                existing_wallet.balance = newBalance;
+                console.log("new balance added");
+                await existing_wallet.save();
+            } else {
+                console.log("new wallet created");
+                const wallet = new walletModel({
+                    user,
+                    balance: amount
+                });
+                await wallet.save();
+                console.log(wallet);
+            }
+            
+            orders.paymentStatus = 'refunded';
         }
+        
+        orders.orderStatus = 'canceled';
+        await orders.save();
+        
+        // You might want to render all of the user's orders here
+        const userOrders = await orderModel.find({ user: user });
+        res.render("orderHistory", { orders: userOrders });
+        
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).send("An error occurred while canceling the order.");
     }
-}
+};
+
 
 // wishlist
 const wishlist = async(req,res)=>{
@@ -780,6 +846,7 @@ module.exports = {
     removeItem,
     changeQty,
     applyCoupon,
+    removeCoupon,
     checkout,
     checkoutAddress,
     createPayPalOrder,

@@ -16,6 +16,8 @@ const adminController = require('../controllers/adminController')
 adminRoute.get("/",adminController.loadLogin)
 adminRoute.post("/",adminController.verifyAdmin)
 adminRoute.get('/dashboard',clearCache,authenticateAdmin,adminController.loadDashboard)
+adminRoute.get('/dashboard/download_salesreport',clearCache,authenticateAdmin,adminController.downloadPdf)
+
 
 adminRoute.get('/customers',clearCache,authenticateAdmin,adminController.loadCustomers)
 adminRoute.get('/customers/unblock/:id',clearCache,authenticateAdmin,adminController.unblockCustomer)

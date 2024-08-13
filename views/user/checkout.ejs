@@ -362,13 +362,15 @@
                                             data-target="#bankTranfer" >Cash On Delivery</label>
         
                                     </div>
+                                    <% if(cart.shippingTotal <= walletBalance){ %>
                                     <div class="custome-radio">
                                         <input class="form-check-input" required="" type="radio" name="payment_option"
-                                            id="exampleRadios4" value="bank" checked="">
+                                            id="exampleRadios4" value="wallet" checked="">
                                         <label class="form-check-label" for="exampleRadios4" data-bs-toggle="collapse"
-                                            data-target="#checkPayment" value="checkPayment">Check Payment</label>
+                                            data-target="#wallet" value="wallet">Wallet</label>
         
                                     </div>
+                                    <% } %>
                                     <div class="custome-radio">
                                         <input class="form-check-input" required="" type="radio" name="payment_option"
                                             id="exampleRadios5" value="paypal" checked="">
@@ -435,6 +437,8 @@
                 console.log("please enter address")
                 alert("Please select an address")
             }
+            
+
            
             if (selectedPaymentOption === 'paypal') {
             // Show the PayPal button container
@@ -483,7 +487,7 @@
     }
 }).render('#paypal-button-container');
 
-            } else if (selectedPaymentOption === 'COD') {
+            } else  {
                 let orderDetails ={
                 cartId :cartId,
                 paymentOption :selectedPaymentOption,
@@ -501,6 +505,7 @@
                 window.location.href = "/confirmOrder";
             }
             }
+
         } catch (error) {
             console.log(error);
         }

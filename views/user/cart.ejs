@@ -276,9 +276,13 @@
                                                     <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$<%= cart.totalPrice %></span></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="cart_total_label">Coupon Discount</td>
-                                                    
-                                                    <td class="cart_total_amount"><i class="ti-gift mr-5"></i> <%=cart.couponDiscount %></td>
+                                                    <td class="cart_total_label">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>Coupon Discount</span>
+                                                            <% if(cart.couponDiscount > 0){ %>
+                                                            <a href="" onclick="removeCoupon()"  class="text-end text-decoration-none">Remove</a><% } %>
+                                                        </div> 
+                                                          <td class="cart_total_amount"><i class="ti-gift mr-5"></i> <%=cart.couponDiscount %></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="cart_total_label">Total</td>
@@ -392,7 +396,7 @@
 
         const applyCoupon = async()=>{
             const coupon = document.getElementById('availableCoupons').value
-            if(coupon != ''){
+            
                 const response = await fetch(`/cart/applycoupon/${coupon}`,{
                     method : "PATCH",
                     headers :{
@@ -401,6 +405,16 @@
                 })
                 if(response.ok) window.location.reload()
             }
-        }
+
+    const removeCoupon = async()=>{
+        const response = await fetch('/cart/removeCoupon',{
+            method : "PATCH",
+                    headers :{
+                        'Content-Type' :'application/json'
+                    }
+        })
+        if(response.ok) window.location.reload()
+    }
+        
     </script>
    <%-include('../layoutUser/footer.ejs') %>

@@ -4,6 +4,8 @@ const productModel = require('../models/productModel')
 const adminModel = require('../models/adminModel')
 const orderModel = require('../models/orderModel')
 const couponModel = require('../models/couponModel')
+const PDFDocument  = require('pdfkit')
+
 require('dotenv').config()
 
 
@@ -31,7 +33,7 @@ const verifyAdmin = async (req, res)=>{
       }
       else{
         req.session.admin = admin._id
-        res.render("dashboard")
+        res.redirect("/admin/dashboard")
       }
     }
   } catch (error) {
@@ -41,12 +43,173 @@ const verifyAdmin = async (req, res)=>{
 // ************************Dashboard
 const loadDashboard = async (req, res) => {
     try {
-      res.render("dashboard");
+      const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+      const endDate = req.query.endDate ? new Date(req.query.endDate + 'T23:59:59.999Z') : null;
+      const {search} = req.query
+      let options = { year: 'numeric', month: 'short', day: 'numeric' };
+      let matchQuery ={orderStatus:{$ne:'canceled'}}
+      let heading = "Sales Report"
+      if(search == 'week') heading = "Sales Report For This Week"
+      if(search == 'today') heading = "Sales Report For Today"
+      if(search == 'month') heading = "Sales Report For This Month"
+      if(search ==  '' && startDate && endDate){
+        heading = `Sales Report from ${startDate.toLocaleDateString('en-US', options)} to ${endDate.toLocaleDateString('en-US', options)}`
+      }
+
+      if(startDate && endDate){
+        matchQuery.createdAt = {$gte:startDate,$lte:endDate}
+      }
+      
+
+      //Sales count
+      const salesCount = await orderModel.find(matchQuery).countDocuments()
+      console.log(salesCount)
+      if (salesCount === 0) {
+        // No orders found for the given period
+        return res.render("dashboard", {
+          salesCount: 0,
+          totalSalesAmount: 0,
+          totDiscount: 0,
+          sales: [],
+          heading,
+          noOrders: true,
+          message: "No orders found for the selected period."
+        });
+      }
+
+      //Sales Amount
+      const salesAmount = await orderModel.aggregate([
+        {$match:matchQuery},
+        {$group:{_id:null,total : {$sum:'$totalPrice'}}}
+      ])
+      const totalSalesAmount = salesAmount[0].total 
+
+      //Discount
+      const discount = await orderModel.aggregate([
+        {$match:matchQuery},
+        {$group:{_id:null,totalDiscount : {$sum:'$discount'}}}
+      ])
+      const totDiscount = discount[0].totalDiscount || 0
+      
+
+      //Sales report
+      const sales = await orderModel.aggregate([
+        {$match:matchQuery},
+        {$group:{
+          _id: {$dateToString: { format: "%Y-%m-%d", date: "$createdAt" }},
+          totalOrders:{$sum:1},
+          grossSales:{$sum:'$totalPrice'},
+          couponDiscount :{$sum:'$discount'}
+        }},
+        {
+          $project: {
+              _id: 0, 
+              date: "$_id", 
+              totalOrders: 1 ,
+              grossSales:1,
+              couponDiscount:1
+          }
+      }
+      ])
+      console.log(sales)
+
+      res.render("dashboard",{
+        salesCount,
+        totalSalesAmount,
+        totDiscount,
+        sales, heading
+      })
+
+
+        } catch (error) {
+          req.flash("error_msg","Error loading Dashboard")
+          console.log(error.message);
+        }
+      }
+
+    
+  // Download pdf Sales Report
+
+  const downloadPdf = async (req, res) => {
+    try {
+      const doc = new PDFDocument();
+      console.log(req.query);
+      const { sales, heading, salesCount, totalSalesAmount, totalDiscount } = req.query;
+    
+      res.setHeader('Content-type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
+      doc.pipe(res);
+    
+      // Add header
+      doc.fontSize(18).text(heading, { align: 'center' });
+      doc.moveDown();
+    
+      // Add overall statistics
+      doc.fontSize(12);
+      doc.text(`Overall Sales Count: ${salesCount}`);
+      doc.text(`Overall Order Amount: ₹${totalSalesAmount}`);
+      doc.text(`Overall Discount: ₹${totalDiscount}`);
+      doc.moveDown();
+    
+      // Add table header
+      doc.fontSize(10);
+      const tableTop = 150;
+      const tableLeft = 50;
+      const colWidths = [80, 60, 80, 100, 80];
+    
+      doc.text('Date', tableLeft, tableTop);
+      doc.text('Orders', tableLeft + colWidths[0], tableTop);
+      doc.text('Gross Sales', tableLeft + colWidths[0] + colWidths[1], tableTop);
+      doc.text('Coupon Deductions', tableLeft + colWidths[0] + colWidths[1] + colWidths[2], tableTop);
+      doc.text('Net Sales', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], tableTop);
+    
+      // Add table content
+      const salesData = JSON.parse(sales);
+      let yPosition = tableTop + 20;
+    
+      salesData.forEach((sale, index) => {
+        const rowColor = index % 2 === 0 ? '#FFFFFF' : '#F0F0F0';
+        
+        doc.rect(tableLeft, yPosition - 5, 400, 20).fill(rowColor);
+        
+        doc.text(sale.date, tableLeft, yPosition);
+        doc.text(sale.totalOrders.toString(), tableLeft + colWidths[0], yPosition);
+        doc.text(`₹${sale.grossSales}`, tableLeft + colWidths[0] + colWidths[1], yPosition);
+        doc.text(`₹${sale.couponDiscount}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2], yPosition);
+        doc.text(`₹${(Number(sale.grossSales) - Number(sale.couponDiscount)).toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPosition);
+    
+        yPosition += 20;
+    
+        if (yPosition > 700) {
+          doc.addPage();
+          yPosition = 50;
+        }
+      });
+    
+      // Add totals row
+      const totals = salesData.reduce((acc, sale) => {
+        acc.totalOrders += Number(sale.totalOrders);
+        acc.totalGrossSales += Number(sale.grossSales);
+        acc.totalCouponDiscount += Number(sale.couponDiscount);
+        acc.totalNetSales += Number(sale.grossSales) - Number(sale.couponDiscount);
+        return acc;
+      }, { totalOrders: 0, totalGrossSales: 0, totalCouponDiscount: 0, totalNetSales: 0 });
+    
+      doc.rect(tableLeft, yPosition - 5, 400, 20).fill('#E0E0E0');
+      doc.font('Helvetica-Bold');
+      doc.text('Total:', tableLeft, yPosition);
+      doc.text(totals.totalOrders.toString(), tableLeft + colWidths[0], yPosition);
+      doc.text(`₹${totals.totalGrossSales.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1], yPosition);
+      doc.text(`₹${totals.totalCouponDiscount.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2], yPosition);
+      doc.text(`₹${totals.totalNetSales.toFixed(2)}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPosition);
+    
+      // Finalize the PDF and end the stream
+      doc.end();
     } catch (error) {
-      req.flash("error_msg","Error loading Dashboard")
-      console.log(error.message);
+      console.error('Error generating PDF:', error);
+      res.status(500).send('Error generating PDF');
     }
-  };
+  }
   // ************************** View Customers
   const loadCustomers = async (req, res) => {
     try {
@@ -403,7 +566,7 @@ const viewOrders = async(req,res)=>{
       const limit = 8
       const skip = (currentPage - 1) * limit
       const totalPages = Math.ceil(count/limit)
-    const orders = await orderModel.find().populate('userId').skip(skip).limit(limit)
+    const orders = await orderModel.find().populate('userId').skip(skip).limit(limit).sort({createdAt:-1})
     res.render("orders",{orders,currentPage,totalPages})
   } catch (error) {
     console.log(error)
@@ -413,6 +576,9 @@ const viewOrders = async(req,res)=>{
 const editOrderStatus = async(req,res)=>{
   try {
     const {id,status} = req.query
+    if(status == 'delivered'){
+      const paymentUpdate =await orderModel.findByIdAndUpdate(id,{paymentStatus:'paid'})
+    }
     const edit = await orderModel.findByIdAndUpdate(id,{orderStatus:status})
     if(edit){
       console.log("status changed")
@@ -448,7 +614,8 @@ const addCoupon = async(req,res)=>{
     const {
       code,discountType,discountAmount,discountPercentage,expiresAt,useageLimit,
       min_purchase_amount,max_discount,description } = req.body
-      console.log(req.body)
+      if(discountAmount > 0) discountPercentage=0
+
     const coupon = new couponModel({
       code,
       discountType,
@@ -461,7 +628,8 @@ const addCoupon = async(req,res)=>{
       description
     })
 
-    await coupon.save()
+    const saved =await coupon.save()
+    if(saved) res.redirect("/admin/coupons")
   } catch (error) {
    console.log(error) 
   }
@@ -471,6 +639,7 @@ module.exports ={
   loadLogin,
   verifyAdmin,
   loadDashboard,
+  downloadPdf,
   loadCustomers,
   blockCustomer,
   unblockCustomer,

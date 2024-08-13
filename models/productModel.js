@@ -31,6 +31,11 @@ const productSchema = new mongoose.Schema({
         default:true
     }
 })
-
+productSchema.pre('save', function(next) {
+    if (this.quantity < 0) {
+        this.quantity = 0;
+    }
+    next();
+});
 const productModel = mongoose.model('product',productSchema)
 module.exports=productModel
