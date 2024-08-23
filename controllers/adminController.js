@@ -5,6 +5,8 @@ const adminModel = require('../models/adminModel')
 const orderModel = require('../models/orderModel')
 const couponModel = require('../models/couponModel')
 const PDFDocument  = require('pdfkit')
+const OfferModel = require('../models/offerModel')
+const moment = require('moment');
 
 require('dotenv').config()
 
@@ -25,11 +27,11 @@ const verifyAdmin = async (req, res)=>{
     const {adminId ,password} = req.body
     const admin = await adminModel.findOne({adminId})
     if(!admin){
-      return res.render("/admin",{"error_msg":"Invalid username"})
+      return res.render("adminLogin",{"error_msg":"Invalid username"})
     }
     else{
       if(password !== admin.password){
-        return res.render("/admin",{"error_msg":"Invalid password"})
+        return res.render("adminLogin",{"error_msg":"Invalid password"})
       }
       else{
         req.session.admin = admin._id
@@ -98,11 +100,145 @@ const generateSalesReport = async (startDate, endDate) => {
     console.log(error);
   }
 };
+const loadDashboard = async(req,res)=>{
+  try {
+      // Total Revenue
+      const revenue = await orderModel.aggregate([
+        { $match: { paymentStatus: "paid" } },
+        { $group: { _id: null, totalRevenue: { $sum: '$totalPrice' } } }
+      ]);
+      let totalRevenue = revenue[0].totalRevenue
+
+      // Total Orders
+      const orders = await orderModel.aggregate([
+        {$match: {$nor: [{ orderStatus: "canceled" },{ orderStatus: "returned" }]}},
+        {$group: {_id: null,count: { $sum: 1 }}}])             
+      let totalOrders = orders[0].count
+
+      // Total Products
+      const totalProducts = await productModel.countDocuments()
+
+       // Total Discount
+       const dis = await orderModel.aggregate([
+        {$match: {orderStatus :{$ne:'canceled'}}},
+        {$group: {_id: null,totalDiscount: { $sum: '$discount' }}}
+      ])
+      const discount = dis[0].totalDiscount
+
+      // new users
+      const users = await userModel.find().sort({createdAt:-1}).limit(3)
+
+      // Best selling Products
+      const result = await orderModel.aggregate([
+        { $unwind: "$cart" },
+        {
+            $group: {
+                _id: "$cart.productId",
+                totalQuantitySold: { $sum: "$cart.quantity" }
+            }
+        },
+        { $sort: { totalQuantitySold: -1 } },
+        { $limit: 5 }
+    ]);
+    let bestProducts = [];
+    if (result.length > 0) {
+        bestProducts = await Promise.all(result.map(async (product) => {
+            const productDetails = await productModel.findById(product._id).select('name');
+            return {
+                productId: product._id,
+                productName: productDetails ? productDetails.name : 'Unknown Product',
+                totalQuantitySold: product.totalQuantitySold
+            };
+        }));
+    }
+    
+
+    // Sales Data Chart
+    const startOfMonth = moment().startOf('month').toDate();
+    const endOfMonth = moment().endOf('month').toDate();
+
+    // sales Count
+    const salesCount = await orderModel.aggregate([
+        {
+            $match: {
+                createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    week: { $week: "$createdAt" }
+                },
+                totalOrders: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { "_id.week": 1 } // Sort by week number
+        }
+    ]);
+    // Paid Count
+    const weeklypaidOrders = await orderModel.aggregate([
+      {
+          $match: {
+              createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+              paymentStatus : 'paid'
+          }
+      },
+      {
+          $group: {
+              _id: {
+                  week: { $week: "$createdAt" }
+              },
+              totalOrders: { $sum: 1 }
+          }
+      },
+      {
+          $sort: { "_id.week": 1 } // Sort by week number
+      }
+  ]);
+      // Payment pending Count
+      const pendingOrders = await orderModel.aggregate([
+        {
+            $match: {
+                createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+                paymentStatus : 'pending'
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    week: { $week: "$createdAt" }
+                },
+                totalOrders: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { "_id.week": 1 } // Sort by week number
+        }
+    ]);
+    console.log(pendingOrders)
+   
+
+      res.render("dashboard",{
+        revenue:totalRevenue,
+        totalProducts,
+        totalOrders,
+        discount,users,
+        bestProducts,
+        salesCount,
+        weeklypaidOrders,
+        pendingOrders
+
+        
+      })
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 
-
-// ************************Dashboard
-const loadDashboard = async (req, res) => {
+// ************************Sales Report
+const salesReport = async (req, res) => {
     try {
       const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
       const endDate = req.query.endDate ? new Date(req.query.endDate + 'T23:59:59.999Z') : null;
@@ -121,7 +257,7 @@ const loadDashboard = async (req, res) => {
          
       if (salesCount === 0) {
         // No orders found for the given period
-        return res.render("dashboard", {
+        return res.render("report", {
           salesCount: 0,
           totalSalesAmount: 0,
           totDiscount: 0,
@@ -135,7 +271,7 @@ const loadDashboard = async (req, res) => {
      
       console.log(sales)
 
-      res.render("dashboard",{
+      res.render("report",{
         salesCount,
         totalSalesAmount,
         totDiscount,
@@ -144,7 +280,7 @@ const loadDashboard = async (req, res) => {
 
 
         } catch (error) {
-          req.flash("error_msg","Error loading Dashboard")
+          req.flash("error_msg","Error loading report")
           console.log(error.message);
         }
       }
@@ -352,7 +488,7 @@ const addProduct = async(req,res)=>{
       brand,
       material,
       category:categoryId,
-      price,
+      originalPrice:price,
       quantity,
       images:imagePath
     })
@@ -405,7 +541,7 @@ const editProduct = async(req,res)=>{
         category,
         brand,
         material,
-        price,
+        originalPrice:price,
         quantity},
         {new:true})
      if(update) {
@@ -533,6 +669,94 @@ const editOrderStatus = async(req,res)=>{
 }
 
 
+//Offer
+const viewOffers = async(req,res)=>{
+  try {
+    const offers = await OfferModel.find().populate('applicableProducts').populate('applicableCategories')
+    res.render("offers",{offers})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+
+const viewAddOffer = async(req,res)=>{
+  try {
+    const products = await productModel.find()
+    const category = await categoryModel.find({status:true})
+
+    res.render("addOffer",{products,category})
+  } catch (error) {
+    
+  }
+}
+
+const addOffer = async (req, res) => {
+  try {
+    const { offerName, offerType, discountPercentage, startDate, endDate, applicableProducts, applicableCategories } = req.body;
+
+    const offer = new OfferModel({
+      offerName,
+      offerType,
+      discountPercentage,
+      startDate,
+      endDate,
+      applicableProducts,
+      applicableCategories,
+    });
+
+    const offerAdded = await offer.save();
+    const percentage = offerAdded.discountPercentage;
+    if (offerAdded.offerType === 'product') {
+      for (const product of offerAdded.applicableProducts) {
+        let productOffer = await productModel.findById(product);
+        if (productOffer) {
+          productOffer.isDiscounted = true;
+          productOffer.offerId = offerAdded._id;
+          productOffer.offerPercentage = percentage;
+          await productOffer.save(); 
+        }
+      }
+    } else {
+      for (const category of offerAdded.applicableCategories) {
+        let categoryProducts = await productModel.find({ category });
+        for (const productOffer of categoryProducts) {
+          productOffer.isDiscounted = true;
+          productOffer.offerId = offerAdded._id;
+          productOffer.offerPercentage = percentage;
+          await productOffer.save(); 
+        }
+      }
+    }
+    
+    if (offerAdded) res.redirect("/admin/offers");
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("An error occurred while adding the offer.");
+  }
+};
+
+//Change status of offer
+
+const changeStatus = async(req,res)=>{
+  try {
+    const offerId =req.query.id
+    const changeto = req.query.changeto === 'true'
+    const offer = await OfferModel.findByIdAndUpdate(offerId,{isActive:changeto})
+    const products = await productModel.find({offerId})
+    for (let product of products) {
+      product.isDiscounted = !product.isDiscounted
+      await product.save();  
+    }
+    if(offer)  res.status(200).send({ message: "Status updated successfully" }); 
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
 //Coupons List
 const coupon = async(req,res)=>{
   try {
@@ -553,11 +777,12 @@ const viewAddCoupon = async(req,res)=>{
 }
 //Add coupon
 const addCoupon = async(req,res)=>{
+  console.log(req.body)
   try {
-    const {
+    let {
       code,discountType,discountAmount,discountPercentage,expiresAt,useageLimit,
       min_purchase_amount,max_discount,description } = req.body
-      if(discountAmount > 0) discountPercentage=0
+
 
     const coupon = new couponModel({
       code,
@@ -581,16 +806,21 @@ const addCoupon = async(req,res)=>{
 module.exports ={
   loadLogin,
   verifyAdmin,
+
   loadDashboard,
+
   loadCustomers,
   blockCustomer,
   unblockCustomer,
+
   loadCategory,
   addCategory,
   editCategory,
   deleteRestoreCategory,
+
   loadBrand,
   addBrand,
+
   loadProducts,
   loadaddProduct,
   addProduct,
@@ -599,10 +829,19 @@ module.exports ={
   removeImage,
   saveProductimage,
   deleteRestoreProduct,
+
   logout,
+
   viewOrders,
   editOrderStatus,
+
+  viewOffers,
+  viewAddOffer,
+  addOffer,
+  changeStatus,
+
   coupon,
   viewAddCoupon,
-  addCoupon
+  addCoupon,
+  salesReport
 }

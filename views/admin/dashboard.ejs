@@ -1,206 +1,298 @@
-<!DOCTYPE HTML>
-<html lang="en">
+<%- include('../layoutAdmin/header.ejs') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<head>
-    <meta charset="utf-8">
-    <title>Evara Dashboard</title>
-<%-include('../layoutAdmin/header.ejs') %>
+<div class="screen-overlay"></div>
+<%- include('../layoutAdmin/asideMenu.ejs') %>
 
-<body>
-    <div class="screen-overlay"></div>
-    <%- include('../layoutAdmin/asideMenu.ejs') %>
-    <main class="main-wrap">
-        <%- include('../layoutAdmin/navigation.ejs') %>
-       
-        <div class="container mt-5 p-3">
-            <h2 id="heading" class="m-4"><%=heading %></h2>
-            
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="input-group">
-                        <input type="date" id="dateFrom" class="form-control" placeholder="dd-mm-yyyy">
-                        <span class="input-group-text">to</span>
-                        <input type="date" id="dateTill" class="form-control" placeholder="dd-mm-yyyy">
-                        <button class="btn btn-primary" onclick="customDate('')" type="button">Apply</button>
+<main class="main-wrap">
+    <!-- Navbar -->
+    <header class="main-header navbar">
+        <div class="col-search">
+            <form class="searchform">
+                <div class="input-group">
+                    <input list="search_terms" type="text" class="form-control" placeholder="Search term">
+                    <button class="btn btn-light bg" type="button">
+                        <i class="material-icons md-search"></i>
+                    </button>
+                </div>
+                <datalist id="search_terms">
+                    <option value="Products">
+                    <option value="New orders">
+                    <option value="Apple iphone">
+                    <option value="Ahmed Hassan">
+                </datalist>
+            </form>
+        </div>
+        <div class="col-nav">
+            <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside">
+                <i class="material-icons md-apps"></i>
+            </button>
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link btn-icon" href="#">
+                        <i class="material-icons md-notifications animation-shake"></i>
+                        <span class="badge rounded-pill">3</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn-icon darkmode" href="#">
+                        <i class="material-icons md-nights_stay"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="requestfullscreen nav-link btn-icon">
+                        <i class="material-icons md-cast"></i>
+                    </a>
+                </li>
+                <li class="dropdown nav-item">
+                    <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownLanguage" aria-expanded="false">
+                        <i class="material-icons md-public"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLanguage">
+                        <a class="dropdown-item text-brand" href="#"><img src="/admin_assets/imgs/theme/flag-us.png" alt="English">English</a>
+                        <a class="dropdown-item" href="#"><img src="/admin_assets/imgs/theme/flag-fr.png" alt="Français">Français</a>
+                        <a class="dropdown-item" href="#"><img src="/admin_assets/imgs/theme/flag-jp.png" alt="日本語">日本語</a>
+                        <a class="dropdown-item" href="#"><img src="/admin_assets/imgs/theme/flag-cn.png" alt="中国人">中国人</a>
                     </div>
-                </div>
-                <div class="col-md-6 text-end">
-                    <button class="btn btn-primary" onclick="customDate('today')">Today's</button>
-                    <button class="btn btn-primary" onclick="customDate('week')">This Week</button>
-                    <button class="btn btn-primary" onclick="customDate('month')">This Month</button>
-                </div>
+                </li>
+                <li class="dropdown nav-item">
+                    <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false">
+                        <img class="img-xs rounded-circle" src="/admin_assets/imgs/people/avatar2.jpg" alt="User">
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
+                        <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
+                        <a class="dropdown-item" href="#"><i class="material-icons md-settings"></i>Account Settings</a>
+                        <a class="dropdown-item" href="#"><i class="material-icons md-account_balance_wallet"></i>Wallet</a>
+                        <a class="dropdown-item" href="#"><i class="material-icons md-receipt"></i>Billing</a>
+                        <a class="dropdown-item" href="#"><i class="material-icons md-help_outline"></i>Help center</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="#"><i class="material-icons md-exit_to_app"></i>Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section class="content-main">
+        <div class="content-header">
+            <div>
+                <h2 class="content-title card-title">Dashboard</h2>
+                <p>Comprehensive overview of your business</p>
             </div>
-    
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Overall Sales Count</h6>
-                            <p class="overall-stats text-success" id="salesCount"><%=salesCount %></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Overall Order Amount</h6>
-                            <p class="overall-stats" id="salesAmt">$ <%=totalSalesAmount.toFixed(1) %></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Overall Discount</h6>
-                            <p class="overall-stats" id="discount">$ <%=totDiscount.toFixed(1) %></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Orders</th>
-                        <th>Gross Sales</th>
-                        <th>Coupon Deductions</th>
-                        <th>Net Sales</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% 
-                    let totalOrders = 0;
-                    let totalGrossSales = 0;
-                    let totalCouponDiscount = 0;
-                    let totalNetSales = 0;
-            
-                    if(sales && sales.length > 0) { 
-                        sales.forEach(sale => { 
-                            totalOrders += Number(sale.totalOrders);
-                            totalGrossSales += Number(sale.grossSales);
-                            totalCouponDiscount += Number(sale.couponDiscount);
-                            totalNetSales += Number(sale.grossSales) - Number(sale.couponDiscount);
-                    %>
-                    <tr>
-                        <td><%= sale.date %></td>
-                        <td><%= sale.totalOrders %></td>
-                        <td>$<%= sale.grossSales %></td>
-                        <td>$<%= sale.couponDiscount %></td>
-                        <td>$<%= Number(sale.grossSales) - Number(sale.couponDiscount) %></td>
-                    </tr>
-                    <% 
-                        }); 
-                    } 
-                    %>
-                </tbody>
-                <tfoot class="table-primary">
-                    <tr>
-                        <th>Total :</th>
-                        <td><%= totalOrders %></td>
-                        <td>$<%= totalGrossSales.toFixed(1) %></td>
-                        <td>$<%= totalCouponDiscount.toFixed(1) %></td>
-                        <td>$<%= totalNetSales.toFixed(1) %></td>
-                    </tr>
-                </tfoot>
-            </table>
-            <button class="btn btn-primary my-4" onclick="downloadPdf('<%=heading%>')"  >Download PDF</button>
-            <button class="btn btn-primary my-4" onclick="downloadExcel()"  >Download Excel</button>
-
-  
             
         </div>
-        <script>
-            const downloadPdf = async(heading) => {
-            try {
-                console.log("download")
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const table = document.querySelector('table');
-                const heading = document.getElementById('heading').innerText
-                const salesCount =document.getElementById('salesCount').innerText
-                const discount = document.getElementById('discount').innerText
-                const salesAmt =document.getElementById('salesAmt').innerText
 
-                doc.setFontSize(22);
-                doc.text(heading, 20, 20);
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-monetization_on"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Revenue</h6>
+                            <span>$<%= revenue %></span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle bg-success-light">
+                            <i class="text-success material-icons md-local_shipping"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Orders</h6>
+                            <span><%= totalOrders %></span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle bg-warning-light">
+                            <i class="text-warning material-icons md-qr_code"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Products</h6>
+                            <span><%= totalProducts %></span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle bg-info-light">
+                            <i class="text-info material-icons md-shopping_basket"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Discount</h6>
+                            <span><%= discount %></span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
 
-                // Add the overall stats
-                doc.setFontSize(14);
-                doc.text(`Overall Sales Count: ${salesCount}`, 20, 40);
-                doc.text(`Overall Order Amount: ${salesAmt}`, 20, 50);
-                doc.text(`Overall Discount: ${discount}`, 20, 60);
+        <!-- Sales Statistics -->
+        <div class="row col-lg-12">
+            <div class="col-xl-8 col-lg-12">
+                <div class="card mb-4">
+                    <article class="card-body">
+                        <h5 class="card-title">Sale statistics</h5>
+                        <% 
+                            let salesData = salesCount.map(data => data.totalOrders);
+                            let paidOrders = weeklypaidOrders.map(data => data.totalOrders);
+                            let pendingOrder = pendingOrders.map(data => data.totalOrders);
+                         %>
+                        <canvas id="myChart" height="120"
+                        data-salescount='<%- JSON.stringify(salesData) %>'
+                        data-paidorder='<%- JSON.stringify(paidOrders) %>'
+                        data-pendingorder='<%- JSON.stringify(pendingOrder) %>'>
+                    </canvas>
+                    
+                      
+                    </article>
+                </div>
+            </div>
+        
 
-                doc.autoTable({ html: table, startY: 70 });
-                doc.save('sales-report.pdf');
+            <!-- Best-Selling Products and New Users -->
+            <div class="col-xl-4 col-lg-12">
+                <div class="row">
+                    <div class="col-lg-12">
 
-                            // Handle the response here
-            } catch (error) {
-                console.log(error);
+                        <div class="card mb-4">
+                            <article class="card-body">
+                                <h5 class="card-title">New Users</h5>
+                                <ul class="list-unstyled">
+                                    <% if (users.length > 0) { %>
+                                        <% users.forEach(user => { %>
+                                            <li class="mb-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div>
+                                                        <strong><%= user.username %></strong>
+                                                        <p class="text-muted font-xs mb-0"><%= user.email %></p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <p>No new users yet.</p>
+                                    <% } %>
+                                </ul>
+                            </article>
+                        </div>
+                       
+                    </div>
+                </div>
+                 </div>
+             
+                    <div class="col-lg-12">
+                        <div class="card mb-4">
+                            <article class="card-body">
+                                <h5 class="card-title">Best Selling Products</h5>
+                                <ul class="list-unstyled">
+                                    <% if (bestProducts.length > 0) { %>
+                                        <% bestProducts.forEach(product => { %>
+                                            <li class="mb-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div>
+                                                        <strong><%= product.productName %></strong>
+                                                        <p class="text-muted font-xs mb-0">Quantity Sold: <%= product.totalQuantitySold %></p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <p>No best-selling products yet.</p>
+                                    <% } %>
+                                </ul>
+                            </article>
+                        </div>
+                    </div>
+                   
+                </div>
+            </div>
+        </div>
+        
+    </section> <!-- content-main end// -->
+
+    <script>
+        (function () {
+            "use strict";
+            
+            // Sale statistics 
+            var chart = document.getElementById('myChart')
+            var ctx =chart.getContext('2d');
+            const salesCountString = chart.dataset.salescount;
+            const paidString = chart.dataset.paidorder;
+            const pending = chart.dataset.pendingorder;
+            // Parse the data to JSON
+
+            const salesCount = JSON.parse(salesCountString || '[]');
+            const paidOrders = JSON.parse(paidString || '[]');
+            const paymentpending = JSON.parse(pending || '[]');
+
+            console.log(chart.dataset);
+            console.log("Paid Orders:", paidOrders)
+            if (ctx) {
+                var chart = new Chart(ctx, {
+                    type: 'line', // The type of chart you want to create
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // Your X-axis labels
+                        datasets: [{
+                            label: 'Sales',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(44, 120, 220, 0.2)',
+                            borderColor: 'rgba(44, 120, 220)',
+                            data: salesCount
+                        },
+                        {
+                            label: 'Paid Orders',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(4, 209, 130, 0.2)',
+                            borderColor: 'rgb(4, 209, 130)',
+                            data: paidOrders 
+                        },
+                        {
+                            label: 'Payment Pending',
+                            tension: 0.3,
+                            fill: true,
+                            backgroundColor: 'rgba(238, 130, 238, 0.2)',
+                            borderColor: 'rgba(238, 130, 238)',
+                            data: paymentpending
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    usePointStyle: true,
+                                },
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                            },
+                            y: {
+                                beginAtZero: true,
+                            }
+                        }
+                    }
+                });
             }
-        };
+        })();
+    </script>
+    
+    <!-- Footer -->
 
-        const downloadExcel = () => {
-            try {
-                console.log("excel download")
-                const ws = XLSX.utils.table_to_sheet(document.querySelector('table'));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
-                XLSX.writeFile(wb, 'sales-report.xlsx');
-            } catch (error) {
-                console.log(error)
-            }
-        };
-        const findDate = (search)=>{
-                    let startDate
-                    let endDate
-                    if(search ==''){
-                         startDate = document.getElementById('dateFrom').value
-                         endDate = document.getElementById('dateTill').value
-
-                    }
-                    if(search =='today'){
-                        startDate = new Date().toISOString().split('T')[0]
-                        endDate = new Date().toISOString().split('T')[0]
-                    }
-                    if(search =='week'){
-                        endDate = new Date().toISOString().split('T')[0]; 
-                        let dayOfWeek = new Date().getDay()
-                        startDate = new Date()
-                        startDate.setDate(startDate.getDate() - dayOfWeek)
-                    }
-                    if(search =='month'){
-                        endDate = new Date().toISOString().split('T')[0]; 
-                        let currentDate = new Date(); 
-                        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-                    }
-
-                    return {
-                        startDate,endDate
-                    }
-        }
-
-            const customDate = async(search)=>{
-                try {
-                    const {startDate,endDate}= findDate(search)
-                    const response = await fetch(`/admin/dashboard?startDate=${startDate}&endDate=${endDate}&search=${search}`,{
-                        method:"GET",
-                        headers:{'Content-Type':'application/json'}
-                    })
-                    if (response.ok) {
-                    const html = await response.text();
-                    document.body.innerHTML = html;
-                } else {
-                    console.error('Error:', response.statusText);
-                }
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-
-           
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.19/jspdf.plugin.autotable.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
- <%- include('../layoutAdmin/footer.ejs') %>
+    <footer class="main-footer

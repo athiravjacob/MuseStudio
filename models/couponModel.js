@@ -12,11 +12,9 @@ const couponSchema = new mongoose.Schema({
     },
     discountAmount:{
         type:Number,
-        required:function(){this.discountType = 'amount'}
     },
     discountPercentage :{
         type:Number,
-        required:function(){this.discountType = 'percentage'}
     },
     expiresAt:Date,
     useageLimit : {

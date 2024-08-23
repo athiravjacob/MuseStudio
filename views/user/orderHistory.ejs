@@ -34,22 +34,89 @@
                                                         <small class="text-muted d-block">Qty: <%= product.quantity %> | $<%= product.price.toFixed(2) %> each</small>
                                                     </div>
                                                 </div>
+
+                                                
                                             </li>
                                         <% }) %>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer bg-transparent">
+                        <div class="card-footer bg-transparent d-flex align-items-center justify-content-between">
+                            <% if(order.paymentStatus === 'paid'){ %>
+                                <label class="my-5 fw-bolder text-brand "   data-bs-toggle="collapse" data-target="#collapseInvoice<%= order._id %>e" href="#collapseInvoice<%= order._id %>">Invoice </label>
+                            <% } %>    
                             <% if (order.orderStatus !== 'canceled' && order.orderStatus !== 'delivered') { %>
-                                <button type="button" class="btn btn-outline-danger btn-sm float-end cancel-order-btn" onclick="cancelOrder('<%= order._id %>')"  data-order-id="<%= order._id %>" >Cancel Order</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm  cancel-order-btn" onclick="cancelOrder('<%= order._id %>')"  data-order-id="<%= order._id %>" >Cancel Order</button>
                             <% } %>
                         </div>
+
+                        <div id="collapseInvoice<%= order._id %>"  class="collapse in m-3 p-4 border rounded">
+                            <!-- Invoice Header -->
+                            <div class="text-center mb-4">
+                                <label  onclick="downloadInvoice('<%= order._id %>')" class="float-end">Download invoice</label>
+                                <h2 class="fw-bold">Invoice</h2>
+                            </div>
+                            <hr>
+                            
+                            <!-- User Details -->
+                            <div class="mb-4">
+                                <h5 class="fw-bold">Billed To:</h5>
+                                <p id="invoiceUsername<%= order._id %>"><%= order.userId.username %></p>
+                                <p id="invoiceEmail<%= order._id %>"><%= order.userId.email %></p>
+                                <p id="invoiceAddress<%= order._id %>"><%= order.deliveryAddress %></p>
+                                <p id="invoiceDate<%= order._id %>" class="text-muted">Date: <%= order.createdAt.toLocaleDateString() %></p>
+
+                            </div>
+                            <hr>
+                            
+                            <!-- Order Summary -->
+                            <div class="mb-4">
+                                <h5 class="fw-bold">Order Summary:</h5>
+                                <table class="table" id="table<%=order._id %>">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Product Name</th>
+                                            <th scope="col">Quantity</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% order.cart.forEach(item => { %>
+                                        <tr>
+                                            <td><%= item.productname %></td>
+                                            <td><%= item.quantity %></td>
+                                            <td>$<%= item.price.toFixed(2) %></td>
+                                            <td>$<%= (item.quantity * item.price).toFixed(2) %></td>
+                                        </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <hr>
+                            
+                            <!-- Payment Details -->
+                            <div class="mb-4">
+                                <h5 class="fw-bold">Payment Details:</h5>
+                                <p id="paymentOption<%= order._id %>">Payment Method: <%= order.paymentOption %></p>
+                                <p id="paymentStatus<%= order._id %>">Payment Status: <span  class="<%= order.paymentStatus === 'paid' ? 'text-success' : 'text-danger' %>"><%= order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) %></span></p>
+                            </div>
+                            <hr>
+                            
+                            <!-- Pricing Summary -->
+                            <div class="text-end">
+                                <p id="subTotal<%= order._id %>">Subtotal: $<%= order.totalPrice.toFixed(2) %></p>
+                                <p id="discount<%= order._id %>">Discount: -$<%= order.discount.toFixed(2) %></p>
+                                <h5 class="fw-bold" id="totalAmount<%= order._id %>">Total: $<%= order.shippingTotal.toFixed(2) %></h5>
+                            </div>
+                        </div>
+                        
                     </div> 
                 </div>
             <% }) %>
         </div>
-    <% } else { %>
+    <% } else { %> 
         <div class="text-center">
             <p class="lead">You haven't placed any orders yet.</p>
             <a class="btn btn-primary" href="/shop">Start Shopping</a>
@@ -57,25 +124,7 @@
     <% } %>
 </div>
 
-<!-- Cancel Order Modal -->
-<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to cancel this order?</p>
-                <p class="text-muted small">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary"  data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-danger"  id="confirmCancelButton">Cancel Order</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script>
 
@@ -94,11 +143,83 @@
         
     }
 
+    const downloadInvoice = (id) => {
+    console.log("Starting invoice download");
+    try {
+        // Check if jsPDF is available
+        if (typeof window.jspdf === 'undefined') {
+            throw new Error("jsPDF library is not loaded");
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Invoice Header
+        doc.setFontSize(22);
+        doc.text("Invoice", 105, 20, { align: "center" });
+
+        // User Details
+        doc.setFontSize(14);
+        doc.text("Billed To:", 20, 40);
+        doc.setFontSize(12);
+        doc.text(document.getElementById(`invoiceUsername${id}`).textContent, 20, 50);
+        doc.text(document.getElementById(`invoiceEmail${id}`).textContent, 20, 60);
+        doc.text(`Address: ${document.getElementById(`invoiceAddress${id}`).textContent}`, 20, 70);
+        doc.text(` ${document.getElementById(`invoiceDate${id}`).textContent}`, 20, 80);
+
+        // Line break
+        doc.setLineWidth(0.5);
+        doc.line(20, 90, 190, 90);
+
+        // Order Summary
+        doc.setFontSize(14);
+        doc.text("Order Summary", 20, 100);
+        doc.autoTable({
+            startY: 110,
+            html: `#table${id}`,
+            margin: { top: 10 },
+        });
+
+        // Line break
+        const tableEndY = doc.previousAutoTable.finalY;
+        doc.line(20, tableEndY + 10, 190, tableEndY + 10);
+
+        // Payment Details
+        const startY = tableEndY + 20;
+        doc.setFontSize(14);
+        doc.text("Payment Details", 20, startY);
+        doc.setFontSize(12);
+        doc.text(` ${document.getElementById(`paymentOption${id}`).textContent}`, 20, startY + 10);
+        doc.text(` ${document.getElementById(`paymentStatus${id}`).textContent}`, 20, startY + 20);
+
+        // Line break
+        doc.line(20, startY + 30, 190, startY + 30);
+
+        // Pricing Summary
+        const finalY = startY + 40;
+        doc.setFontSize(14);
+        doc.text("Pricing Summary", 20, finalY);
+        doc.setFontSize(12);
+        doc.text(`${document.getElementById(`subTotal${id}`).textContent}`, 20, finalY + 10);
+        doc.text(`${document.getElementById(`discount${id}`).textContent}`, 20, finalY + 20);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text(`${document.getElementById(`totalAmount${id}`).textContent}`, 20, finalY + 40);
+
+        // Save the PDF
+        doc.save("invoice.pdf");
+        console.log("Invoice downloaded successfully");
+    } catch (error) {
+        console.error("Error generating invoice:", error);
+    }
+};
 </script>
 
 <!-- Bootstrap JS and dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.19/jspdf.plugin.autotable.min.js"></script>
 
 <style>
     .hover-shadow {

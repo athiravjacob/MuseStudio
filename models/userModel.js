@@ -61,6 +61,8 @@ const userSchema = new mongoose.Schema({
     address :[addressSchema],
     DOB: {type:Date}
 
+  },{
+    timestamps:true
   });
 
 const UserModel = mongoose.model('User',userSchema)

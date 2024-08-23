@@ -351,9 +351,13 @@
                                         </div>
                                         <div class="clearfix product-price-cover">
                                             <div class="product-price primary-color float-left">
-                                                <ins><span class="text-brand " id="productPrice">$<%=product.price %></span></ins>
-                                                <!-- <ins><span class="old-price font-md ml-15">$200.00</span></ins> -->
-                                                <!-- <span class="save-price  font-md color3 ml-15">25% Off</span> -->
+                                                <% if(!product.isDiscounted){ %>
+                                                    <ins><span class="text-brand " id="productPrice">$<%=product.originalPrice %></span></ins>
+                                                <% }else{ %>
+                                                    <ins><span class="text-brand " id="productPrice">$<%=product.offerPrice %></span></ins>
+                                                    <ins><span class="old-price font-md ml-15">$<%=product.originalPrice %></span></ins>
+                                                    <span class="save-price  font-md color3 ml-15"><%=product.offerPercentage %>% Off</span>
+                                                <% } %>
                                             </div>
                                         </div>
                                         <div class="bt-1 border-color-1 mt-15 mb-15"></div>
@@ -389,7 +393,12 @@
                                             </div>
                                             <div class="product-extra-link2">
                                                 <% if(product.quantity > 0){%>
-                                                    <button  onclick="addToCart('<%=product._id%>','<%=product.price%>','<%=product.quantity%>')" id="addtocart-btn" class="button button-add-to-cart">Add to cart</button>
+                                                    <% 
+                                                    let price
+                                                    if(product.isDiscounted) price = product.offerPrice
+                                                    else price = product.originalPrice
+                                                    %>
+                                                    <button  onclick="addToCart('<%=product._id%>','<%=price%>','<%=product.quantity%>')" id="addtocart-btn" class="button button-add-to-cart">Add to cart</button>
                                                 <%}else{ %>
                                                 <h5  class="text-danger">SOLD OUT</h5>
                                                 <% } %>
@@ -590,8 +599,8 @@
                                                         </span>
                                                     </div>
                                                     <div class="product-price">
-                                                        <span>$<%=product.price %></span>
-                                                        <!-- <span class="old-price">$245.8</span> -->
+                                                        <span>$<%=product.originalPrice %></span>
+                                                       
                                                     </div>
                                                 </div>
                                             </div>

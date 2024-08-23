@@ -45,7 +45,11 @@
                             <a href="#" class="img-wrap"> <img src="/<%=product[i].images[0] %>" alt="Product"> </a>
                             <div class="info-wrap">
                                 <a href="#" class="title text-truncate"><%=product[i].name %></a>
-                                <div class="price mb-2"> $<%=product[i].price %></div> <!-- price.// -->
+                                <% if(!product[i].isDiscounted) {%>
+                                <div class="price mb-2"> $<%=product[i].originalPrice %></div> 
+                                <% }else{ %>
+                                    <div class="price mb-2"> $<%=product[i].offerPrice %></div> 
+                                <% } %>
                                 <% if(product[i].quantity > 0){%>
                                     <div class="price mb-2"><%=product[i].quantity %> in stock</div> 
                                 <% }else{ %>

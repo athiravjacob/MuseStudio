@@ -1,0 +1,130 @@
+<%-include('../layoutAdmin/header.ejs') %>
+<%-include('../layoutAdmin/asideMenu.ejs') %>
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="row">
+            <div class="col-9">
+                <div class="content-header">
+                    <h2 class="content-title">Add New Offer</h2>
+                </div>
+            </div>
+            <div class="col-lg-10">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Offer Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post"   action="/admin/addOffer" id="offer-form">
+                            <div class="mb-4">
+                                <label class="form-label">Offer Name</label>
+                                <input type="text" placeholder="Enter offer name" class="form-control" name="offerName" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Discount Type</label>
+                                <select id="offerType" name="offerType" class="form-select" onchange="toggleApplicableFields()" required>
+                                    <option value="product">Product</option>
+                                    <option value="category">Category</option>
+                                </select>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-lg-6">
+                                    <label class="form-label">Discount Percentage</label>
+                                    <input type="number" placeholder="Enter discount percentage" class="form-control" name="discountPercentage" required>
+                                </div>
+                                
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-lg-6">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" name="startDate" required>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" name="endDate" required>
+                                </div>
+                            </div>
+                            <div id="applicableProducts" class="mb-4">
+                                <label class="form-label h5">Applicable Products</label>
+                                <% if (products && products.length > 0) { %>
+                                    <div class="list-group border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <% products.forEach(product => { %>
+                                            <div class="form-check list-group-item d-flex justify-content-between align-items-center">
+                                                <input 
+                                                    class="form-check-input" 
+                                                    type="checkbox" 
+                                                    name="applicableProducts[]" 
+                                                    value="<%= product._id %>" 
+                                                    id="product-<%= product._id %>"
+                                                >
+                                                <label class="form-check-label" for="product-<%= product._id %>">
+                                                    <%= product.name %>
+                                                </label>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="alert alert-warning mt-2" role="alert">
+                                        No applicable products available.
+                                    </div>
+                                <% } %>
+                            </div>
+                            
+                            <div id="applicableCategories" class="mb-4 hidden">
+                                <label class="form-label h5">Applicable Categories</label>
+                                <% if (category && category.length > 0) { %>
+                                    <div class="list-group border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <% category.forEach(category => { %>
+                                            <div class="form-check list-group-item d-flex justify-content-between align-items-center">
+                                                <input 
+                                                    class="form-check-input" 
+                                                    type="checkbox" 
+                                                    name="applicableCategories[]" 
+                                                    value="<%= category._id %>" 
+                                                    id="category-<%= category._id %>"
+                                                >
+                                                <label class="form-check-label" for="category-<%= category._id %>">
+                                                    <%= category.name %>
+                                                </label>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="alert alert-warning mt-2" role="alert">
+                                        No applicable categories available.
+                                    </div>
+                                <% } %>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Is Active</label>
+                                <input type="checkbox" id="isActive" name="isActive" checked>
+                            </div>
+                            <%-include('../layoutUser/flashError.ejs') %>
+                            <button class="btn btn-md btn-primary" type="submit">Add Offer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    function toggleApplicableFields() {
+        const offerType = document.getElementById('offerType').value;
+        const applicableProducts = document.getElementById('applicableProducts');
+        const applicableCategories = document.getElementById('applicableCategories');
+        
+        if (offerType === 'product') {
+            applicableProducts.classList.remove('hidden');
+            applicableCategories.classList.add('hidden');
+        } else if (offerType === 'category') {
+            applicableProducts.classList.add('hidden');
+            applicableCategories.classList.remove('hidden');
+        }
+    }
+</script>
+
+<%-include('../layoutAdmin/footer.ejs') %>

@@ -355,6 +355,9 @@
                                     <h5>Payment</h5>
                                 </div>
                                 <div class="payment_option">
+                                    <% if(cart.shippingTotal > 1000){ %>
+                                        <p class="text-muted">COD not available for order above $1000</p>
+                                    <% }else{ %>
                                     <div class="custome-radio">
                                         <input class="form-check-input" required="" type="radio" name="payment_option"
                                             id="exampleRadios3" value="COD" checked="">
@@ -362,6 +365,7 @@
                                             data-target="#bankTranfer" >Cash On Delivery</label>
         
                                     </div>
+                                    <% } %>
                                     <% if(cart.shippingTotal <= walletBalance){ %>
                                     <div class="custome-radio">
                                         <input class="form-check-input" required="" type="radio" name="payment_option"
@@ -428,6 +432,7 @@
                 }}
 
     const placeOrder = async(cartId)=>{
+        console.log("messsage from place order")
         try {
             const selectedPaymentOption = document.querySelector('input[name="payment_option"]:checked').value;
             const address = document.getElementById('addr').textContent

@@ -295,15 +295,24 @@ const shop = async(req,res)=>{
         const totalPages = Math.ceil(count/limit)
  
         const search = req.query.search
-        if(search && search !==" "){
-            const products = await productModel.find({status:true,
-                $or: [
-                    {name: {$regex:search ,$options:'i'}},
-                    {description: {$regex:search ,$options:'i'}},
-                    {brand:{$regex:search, $options:'i'}}
-                ]
-            })
-            res.render("shop",{products})
+        if (search && search.trim() !== "") {
+            const words = search.trim().split(/\s+/); 
+        
+            const query = {
+                status: true,
+                $and: words.map(word => ({
+                    $or: [
+                        { name: { $regex: word, $options: 'i' } },
+                        { description: { $regex: word, $options: 'i' } },
+                        { brand: { $regex: word, $options: 'i' } }
+                    ]
+                }))
+            };
+        
+            // Find products that match the search criteria
+            const products = await productModel.find(query);
+            
+            res.render("shop",{products,totalPages:null,currentPage:null})
         }
         const products = await productModel.find({status:true}).populate('category').skip(skip).limit(8)
 
@@ -657,9 +666,10 @@ const placeOrder = async(req,res)=>{
             paymentStatus = 'pending'
         }
         const products = cart.items.map(item => ({
+             
             productId:item.productId._id,
             productname: item.productId.name,
-            price: item.productId.price,
+            price: item.productId.isDiscounted ?item.productId.offerPrice : item.productId.originalPrice , 
             quantity: item.quantity
           }));
          
@@ -701,7 +711,7 @@ const placeOrder = async(req,res)=>{
 const orders =async(req,res)=>{
     try {
         const userId = req.user.id
-        const orders = await orderModel.find({userId :userId}).populate('cart.productId').sort({createdAt:-1})
+        const orders = await orderModel.find({userId :userId}).populate('userId').populate('cart.productId').sort({createdAt:-1})
         console.log(orders)
         if(orders){
            return res.render("orderHistory",{orders})

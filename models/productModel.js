@@ -19,9 +19,9 @@ const productSchema = new mongoose.Schema({
     material:{
         type:String
     },
-    price:{
-        type:Number
-    },
+    originalPrice:Number,
+    offerPrice :Number,
+    offerPercentage: Number,
     quantity:{
         type:Number
     },
@@ -29,11 +29,21 @@ const productSchema = new mongoose.Schema({
     status:{
         type:Boolean,
         default:true
+    },offerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'offer',
+        default: null
+    },
+    isDiscounted: {
+        type: Boolean,
+        default: false
     }
 })
 productSchema.pre('save', function(next) {
-    if (this.quantity < 0) {
-        this.quantity = 0;
+    if (this.offerId ) {
+        this.offerPrice =this.originalPrice-(this.originalPrice * this.offerPercentage/100)
+    } else {
+        this.offerPrice = 0;
     }
     next();
 });

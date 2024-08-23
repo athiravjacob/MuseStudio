@@ -41,10 +41,18 @@ adminRoute.post('/brand/addBrand',upload.single('brand-image'),adminController.a
 adminRoute.get('/orders',clearCache,authenticateAdmin,adminController.viewOrders)
 adminRoute.patch('/orders/editStatus',adminController.editOrderStatus)
 
+adminRoute.get('/offers',clearCache,authenticateAdmin,adminController.viewOffers)
+adminRoute.get('/addoffer',clearCache,authenticateAdmin,adminController.viewAddOffer)
+adminRoute.post('/addoffer',adminController.addOffer)
+adminRoute.patch('/offers/changeStatus',adminController.changeStatus)
+
+
+
 adminRoute.get('/coupons',clearCache,authenticateAdmin,adminController.coupon)
 adminRoute.get('/coupons/add',clearCache,authenticateAdmin,adminController.viewAddCoupon)
 adminRoute.post('/coupons/add',clearCache,authenticateAdmin,adminController.addCoupon)
 
+adminRoute.get('/report',clearCache,authenticateAdmin,adminController.salesReport)
 
 
 adminRoute.get('/logout',clearCache,authenticateAdmin,adminController.logout)

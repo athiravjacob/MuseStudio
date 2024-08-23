@@ -1,0 +1,90 @@
+<%- include('../layoutAdmin/header.ejs') %>
+<%- include('../layoutAdmin/asideMenu.ejs') %>
+
+    <main class="main-wrap">
+        <section class="content-main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="content-header mb-4">
+                            <h2 class="content-title">All Offers</h2>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Offer List</h4>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Offer Name</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Discount Percentage</th>
+                                            <th scope="col">Applicable Products/Categories</th>
+                                            <th scope="col">Status</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Example Offer Row -->
+                                        <% offers.forEach((offer, index) => { %>
+                                            <tr>
+                                                <th scope="row"><%= index + 1 %></th>
+                                                <td><%= offer.offerName %></td>
+                                                <td class="text-capitalize"><%= offer.offerType %></td>
+                                                <td><%= offer.discountPercentage %>%</td>
+                                                <td>
+                                                    <% if (offer.offerType === 'product') { %>
+                                                        <ul>
+                                                            <% offer.applicableProducts.forEach(product => { %>
+                                                                <li><%= product.name %></li>
+                                                            <% }); %>
+                                                        </ul>
+                                                    <% } else if (offer.offerType === 'category') { %>
+                                                        <ul>
+                                                            <% offer.applicableCategories.forEach(category => { %>
+                                                                <li><%= category.name %></li>
+                                                            <% }); %>
+                                                        </ul>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if(offer.isActive){ %>
+                                                        <button onclick="changeStatus('<%=offer._id%>',false)" class="btn btn-primary">Active</button>
+                                                    <% }else{ %>
+                                                        <button onclick="changeStatus('<%=offer._id%>',true)" class="btn btn-primary">Inactive</button>
+                                                        <% } %>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                                <% if (!offers.length) { %>
+                                    <div class="alert alert-warning text-center" role="alert">
+                                        No offers have been added yet.
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const changeStatus = async(offerId,changeto)=>{
+            try {
+                const response = await fetch(`/admin/offers/changeStatus?id=${offerId}&changeto=${changeto}`,
+                {
+                    method:'PATCH',
+                    headers:{'Content-Type':'application/json'}
+                })
+                if(response.ok) window.location.reload()
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    </script>
+    <%- include('../layoutAdmin/footer.ejs') %>

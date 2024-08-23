@@ -386,13 +386,20 @@
                                                 </div>
                                                 <h2 class="text-truncate"><a href="/productDetails/<%=product._id %>" ><%=product.name %></a></h2>
                                                 <div class="rating-result" title="90%">
+                                                    <% if(product.isDiscounted == true){ %>
                                                     <span>
-                                                        <span>50%</span>
+                                                        <span><%=product.offerPercentage %>%</span>
                                                     </span>
+                                                    <% }
+                                                     %>
                                                 </div>
                                                 <div class="product-price">
-                                                    <span>$ <%=product.price %></span>
-                                                    <!-- <span class="old-price">$255.8</span> -->
+                                                    <% if(!product.isDiscounted){ %>
+                                                    <span>$ <%=product.originalPrice %></span>
+                                                    <% }else{ %>
+                                                    <span>$ <%=product.offerPrice %></span>
+                                                    <span class="old-price">$ <%=product.originalPrice %></span>
+                                                    <% } %>
                                                 </div>
                                                 <div class="product-action-1 show">
                                                     <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>

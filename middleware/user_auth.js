@@ -8,6 +8,7 @@ const authenticate = async(req,res,next)=>{
     }
     res.redirect('/login')
 }
+
 const logout = async(req,res,next)=>{
     req.logout((error)=>{
         if(error){
@@ -16,6 +17,7 @@ const logout = async(req,res,next)=>{
         res.redirect("/login")
     })
 }
+
 const userStatus = async (req, res, next) => {
     try {
         if(req.user && req.user.blocked){

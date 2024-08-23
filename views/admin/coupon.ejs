@@ -33,7 +33,7 @@
                                     <td><%= coupon.discountType %></td>
                                     <td>
                                         <% if (coupon.discountType === 'amount') { %>
-                                            $<%= coupon.discountAmount %>
+                                            <%= coupon.discountAmount %>
                                         <% } else { %>
                                             <%= coupon.discountPercentage %>%
                                         <% } %>
