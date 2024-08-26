@@ -6,7 +6,7 @@ const orderModel = require('../models/orderModel')
 const couponModel = require('../models/couponModel')
 const PDFDocument  = require('pdfkit')
 const OfferModel = require('../models/offerModel')
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 require('dotenv').config()
 
@@ -152,7 +152,182 @@ const loadDashboard = async(req,res)=>{
         }));
     }
     
+  /***********  Sales Data for today
+   
+   Setting timezone to get correct hours 
+   Then find starting and ending hours of current date
+   Aggregate from orderModel to find matching orders placed between start and end hours
+   group each orders by hours 
+   
+   ****************************/
+  
+    moment.tz.setDefault("Your/Timezone");
+    const startOfDay = moment().startOf('day').toDate();
+    const endOfDay = moment().endOf('day').toDate();
 
+    const todaySales = await orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfDay, $lte: endOfDay }
+        }
+      },
+      {
+        $group: {
+          _id: { 
+            hour: { 
+              $hour: {
+                $add: [
+                  "$createdAt",
+                  { $multiply: [1000 * 60 * 60, moment().utcOffset() / 60] }
+                ]
+              } 
+            } 
+          },
+          totalSalesToday: { $sum: "$shippingTotal" }
+        }
+      },
+      {
+        $sort: { "_id.hour": 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          timeRange: {
+            $concat: [
+              { $toString: "$_id.hour" }, ":00 - ",
+              { $toString: { $add: ["$_id.hour", 1] } }, ":00"
+            ]
+          },
+          totalSalesToday: 1
+        }
+      }
+    ]);
+
+
+    const startOfWeek = moment().startOf('week').toDate();
+    const endOfWeek = moment().endOf('week').toDate();
+
+    const weekSales = await orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfWeek, $lte: endOfWeek }
+        }
+      },
+      {
+        $group: {
+          _id: { 
+            dayOfWeek: { 
+              $dayOfWeek: {
+                $add: [
+                  "$createdAt",
+                  { $multiply: [1000 * 60 * 60, moment().utcOffset() / 60] }
+                ]
+              } 
+            }
+          },
+          totalSales: { $sum: "$shippingTotal" }
+        }
+      },
+      {
+        $sort: { "_id.dayOfWeek": 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          day: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$_id.dayOfWeek", 1] }, then: "Sunday" },
+                { case: { $eq: ["$_id.dayOfWeek", 2] }, then: "Monday" },
+                { case: { $eq: ["$_id.dayOfWeek", 3] }, then: "Tuesday" },
+                { case: { $eq: ["$_id.dayOfWeek", 4] }, then: "Wednesday" },
+                { case: { $eq: ["$_id.dayOfWeek", 5] }, then: "Thursday" },
+                { case: { $eq: ["$_id.dayOfWeek", 6] }, then: "Friday" },
+                { case: { $eq: ["$_id.dayOfWeek", 7] }, then: "Saturday" }
+              ],
+              default: "Unknown"
+            }
+          },
+          totalSales: 1
+        }
+      }
+    ]);
+
+    
+
+/**
+ * Sales This month
+ * 
+ */
+
+
+// Get the start and end of the current month
+const startMonth = moment().startOf('month').toDate();
+const endMonth = moment().endOf('month').toDate();
+
+const monthSales = await orderModel.aggregate([
+  {
+    $match: {
+      createdAt: { $gte: startMonth, $lte: endMonth }
+    }
+  },
+  {
+    $group: {
+      _id: { 
+        week: { 
+          $floor: {
+            $divide: [
+              { $subtract: [
+                { $dayOfMonth: {
+                  $add: [
+                    "$createdAt",
+                    { $multiply: [1000 * 60 * 60, moment().utcOffset() / 60] }
+                  ]
+                }},
+                1
+              ]},
+              7
+            ]
+          }
+        }
+      },
+      totalSales: { $sum: "$shippingTotal" }
+    }
+  },
+  {
+    $sort: { "_id.week": 1 }
+  },
+  {
+    $project: {
+      _id: 0,
+      week: { $add: ["$_id.week", 1] },
+      totalSales: 1
+    }
+  }
+]);
+
+const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+const chartData = {
+  today: {
+    labels: todaySales.map(sale => `${sale.timeRange}:00`),
+    data: todaySales.map(sale => sale.totalSalesToday)
+  },
+  week: {
+    labels: weekDays,
+    data: weekDays.map(day => {
+      const sale = weekSales.find(s => s.day === day);
+      return sale ? sale.totalSales : 0;
+    })
+  },
+  month: {
+    labels: monthSales.map(sale => `Week ${sale.week}`),
+    data: monthSales.map(sale => sale.totalSales)
+  }
+};
+
+
+   //place copied sales chart here
     // Sales Data Chart
     const startOfMonth = moment().startOf('month').toDate();
     const endOfMonth = moment().endOf('month').toDate();
@@ -216,8 +391,6 @@ const loadDashboard = async(req,res)=>{
             $sort: { "_id.week": 1 } // Sort by week number
         }
     ]);
-    console.log(pendingOrders)
-   
 
       res.render("dashboard",{
         revenue:totalRevenue,
@@ -227,8 +400,8 @@ const loadDashboard = async(req,res)=>{
         bestProducts,
         salesCount,
         weeklypaidOrders,
-        pendingOrders
-
+        pendingOrders,
+        chartData
         
       })
   } catch (error) {

@@ -431,17 +431,23 @@
                     console.error(error)
                 }}
 
-    const placeOrder = async(cartId)=>{
+     const placeOrder = async(cartId)=>{
         console.log("messsage from place order")
         try {
             const selectedPaymentOption = document.querySelector('input[name="payment_option"]:checked').value;
-            const address = document.getElementById('addr').textContent
-            const cityState = document.getElementById('cityState').textContent
-            const fullAddress = address + " " +cityState
-            if(!address ||!cityState || !fullAddress ){
-                console.log("please enter address")
-                alert("Please select an address")
-            }
+            const address = document.getElementById('addr')?.textContent.trim();
+            const cityState = document.getElementById('cityState')?.textContent.trim();
+            const fullAddress = address + " " + cityState;
+
+            if (!address || !cityState) {
+            swal.fire({
+                icon: 'error',
+                title: 'Shipping Address is missing',
+                showConfirmButton: false,
+                timer: 2500
+            });
+            return; 
+        }
             
 
            
@@ -507,7 +513,15 @@
                 body: JSON.stringify(orderDetails)
             });
             if (response.ok) {
-                window.location.href = "/confirmOrder";
+                swal.fire({
+                    icon: 'success',
+                    title: 'Thank you for shopping with us',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = "/confirmOrder";
+                });
+               
             }
             }
 

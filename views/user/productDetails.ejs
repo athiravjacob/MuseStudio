@@ -295,9 +295,7 @@
         <div class="page-header breadcrumb-wrap">
             <div class="container">
                 <div class="breadcrumb">
-                    <a href="index.html" rel="nofollow">Home</a>
-                    <span></span> Fashion
-                    <span></span> Abstract Print Patchwork Dress
+                   
                 </div>
             </div>
         </div>
@@ -577,23 +575,18 @@
                                             <div class="product-cart-wrap small hover-up">
                                                 <div class="product-img-action-wrap">
                                                     <div class="product-img product-img-zoom">
-                                                        <a href="shop-product-right.html" tabindex="0">
+                                                        <a href="/productDetails/<%=product._id %>" tabindex="0">
                                                             <img class="default-img" src="/<%=product.images[0]%>" alt="">
                                                             <img class="hover-img" src="/<%=product.images[1]%>" alt="">
                                                         </a>
                                                     </div>
-                                                    <div class="product-action-1">
-                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="#"  tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                        <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                    </div>
+                                                    
                                                     <div class="product-badges product-badges-position product-badges-mrg">
                                                         <span class="hot">Hot</span>
                                                     </div>
                                                 </div>
                                                 <div class="product-content-wrap">
-                                                    <h2><a href="shop-product-right.html" tabindex="0"><%= product.name %></a></h2>
+                                                    <h2><a href="/productDetails/<%=product._id %>" tabindex="0"><%= product.name %></a></h2>
                                                     <div class="rating-result" title="90%">
                                                         <span>
                                                         </span>
@@ -657,7 +650,15 @@
             {
             qtyValue.textContent =qty+1
         }else{
-            alert("maximum quantity added")
+            Swal.fire({
+                    icon: 'Error',
+                    title: 'Oops!',
+                    text:"Cannot add more than 5 items",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
         }
     
         
@@ -689,13 +690,23 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert("Added to cart");
-                window.location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to cart',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
                 if (data.redirect) {
                     window.location.href = data.redirectUrl;
                 } else {
-                    alert(data.message || "Error adding to cart");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: "Maximum Quantity Added"
+                    });
                 }
             }
         }
@@ -713,39 +724,30 @@
                 headers:{'Content-Type':"application/json"},
                 body:JSON.stringify({productId:id})
             })
-            if(response.ok) window.location.reload()
-        } catch (error) {
+            const data = await response.json();
+            console.log(data)
+
+            if(response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Wishlisted',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
+            }else {
+                if (data.redirect) {
+                    window.location.href = data.redirectUrl;
             
+                }
+            }
+        } catch (error) {
+            console.log(error)
         }
     }
 
-    /// SHOW TOAST
-
-    function showToast(message, type = "success") {
-    // Create toast element
-    const toast = document.createElement('div')
-    toast.className = `toast ${type}`
-    toast.textContent = message
-        console.log("toast")
-    // Style the toast
-    toast.style.position = 'fixed'
-    toast.style.bottom = '20px'
-    toast.style.right = '20px'
-    toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#F44336'
-    toast.style.color = 'white'
-    toast.style.padding = '15px'
-    toast.style.borderRadius = '5px'
-    toast.style.zIndex = '1000'
-
-    // Add toast to body
-    document.body.appendChild(toast)
-
-    // Remove toast after 3 seconds
-    setTimeout(() => {
-        toast.remove()
-    }, 3000)
-}
-
+   
 
     </script>
    <%-include('../layoutUser/footer.ejs') %>

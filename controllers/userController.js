@@ -21,7 +21,7 @@ require('dotenv').config()
 //*****************Load HomePage
 const loadHome = async(req,res)=>{
     try {
-        const products = await productModel.find({status:true}).populate('category').exec();
+        const products = await productModel.find({status:true}).limit(9).populate('category').exec();
         res.status(200).render("home",{products})
     } catch (error) {
         console.error(`Error rendering home page: ${error.message}`);    
@@ -276,65 +276,91 @@ const productDetails = async(req,res)=>{
     }
 }
 
-// const accountBlocked = async (req,res)=>{
-//     try {
-//         res.render("blocked")
-//     } catch (error) {
-        
-//     }
-// }
-
-
 // ********************************* Shop Page
-const shop = async(req,res)=>{
+const shop = async (req, res) => {
     try {
-        const count = await productModel.countDocuments({ status: true });
-        const currentPage = req.query.pageNo || 1
-        const limit =8
-        const skip = (currentPage - 1) * limit
-        const totalPages = Math.ceil(count/limit)
- 
-        const search = req.query.search
-        if (search && search.trim() !== "") {
-            const words = search.trim().split(/\s+/); 
-        
-            const query = {
-                status: true,
-                $and: words.map(word => ({
-                    $or: [
-                        { name: { $regex: word, $options: 'i' } },
-                        { description: { $regex: word, $options: 'i' } },
-                        { brand: { $regex: word, $options: 'i' } }
-                    ]
-                }))
-            };
-        
-            // Find products that match the search criteria
-            const products = await productModel.find(query);
-            
-            res.render("shop",{products,totalPages:null,currentPage:null})
-        }
-        const products = await productModel.find({status:true}).populate('category').skip(skip).limit(8)
+        const currentPage = parseInt(req.query.pageNo) || 1;
+        const limit = 8;
+        const skip = (currentPage - 1) * limit;
 
-        res.render("shop",{products,totalPages,currentPage})
+        const search = req.query.search || '';
+        const sortOption = req.query.sort || '';  // Get sort option from query params
+        const category = req.query.category || '';  // Get category from params
+
+        let sortCriteria = {};
+
+        // Determine sort criteria based on the sort option
+        if (sortOption === 'lowToHigh') {
+            sortCriteria = { originalPrice: 1 };  // Sort by price ascending
+        } else if (sortOption === 'highToLow') {
+            sortCriteria = { originalPrice: -1 };  // Sort by price descending
+        } else if (sortOption === 'nameAsc') {
+            sortCriteria = { name: 1 };  // Sort by name ascending
+        } else if (sortOption === 'nameDesc') {
+            sortCriteria = { name: -1 };  // Sort by name descending
+        }
+
+        // Construct the search query
+        let query = { status: true };
+        if (search.trim() !== "") {
+            const words = search.trim().split(/\s+/);
+            query.$and = words.map(word => ({
+                $or: [
+                    { name: { $regex: word, $options: 'i' } },
+                    { description: { $regex: word, $options: 'i' } },
+                    { brand: { $regex: word, $options: 'i' } }
+                ]
+            }));
+        }
+
+        // Add category filter to the query if a category is selected
+        if (category) {
+            query.category = category;
+        }
+
+        // Count the total number of documents that match the query
+        const count = await productModel.countDocuments(query);
+        const totalPages = Math.ceil(count / limit);
+
+        // Find products based on query and sort criteria with pagination
+        const products = await productModel.find(query)
+            .sort(sortCriteria)
+            .skip(skip)
+            .limit(limit)
+            .populate('category');
+
+        // Render the shop page with the products, pagination, current sort option, and search query
+        res.render("shop", {
+            products,
+            totalPages,
+            currentPage,
+            sortOption,
+            search,
+            selectedCategory: category  // Pass the selected category to the view
+        });
+
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).send("An error occurred while rendering the shop page.");
     }
-}
+};
+
+
 
 // *************************** Shop By Category
 const shopByCategory = async(req,res)=>{
     try {
-        const selectedCategoryId = req.params.id
+        const selectedCategoryId = req.query.category
         const count = await productModel.find({category:selectedCategoryId}).countDocuments({ status: true });
         if(count <8){
             currentPage =null
             totalPages = null
+            sortOption = null
         }else{
-
+ 
         }
         const products =await productModel.find({category:selectedCategoryId}).populate('category')
-        res.render("shop",{products,selectedCategoryId,currentPage,totalPages})
+        res.render("shop",{products,selectedCategoryId,currentPage,totalPages,sortOption})
     } catch (error) {
         console.log(error)
     }
@@ -343,6 +369,7 @@ const shopByCategory = async(req,res)=>{
 // ********************************* Sort Low to high
 const shopLowToHigh = async(req,res)=>{
     try {
+        
         const count = await productModel.find().countDocuments({ status: true });
         if(count <8){
             currentPage =null
@@ -359,15 +386,9 @@ const shopLowToHigh = async(req,res)=>{
 //************************************* Sort High to Low
 const shopHighToLow = async(req,res)=>{
     try {
-        const count = await productModel.find().countDocuments({ status: true });
-        if(count <8){
-            currentPage =null
-            totalPages = null
-        }else{
 
-        }
         const products = await productModel.find().sort({price:-1})
-        res.render("shop",{products,currentPage,totalPages})
+        res.render("shop",{products,currentPage:null,totalPages:null})
     } catch (error) {
         
     }
@@ -463,9 +484,9 @@ const addtoCart = async (req, res) => {
 
         const addedtocart = await cart.save();
         if (addedtocart) {
-            res.status(200).json({ message: "Product added to cart" });
+            res.status(200).send({ message: "Product added to cart" });
         } else {
-            res.status(500).json({ message: "Error adding product to cart" });
+            res.status(500).send({ message: "Error adding product to cart" });
         }
     } catch (error) {
         console.log(error);
@@ -787,17 +808,18 @@ const wishlist = async(req,res)=>{
 
 const addtoWishlist = async(req,res)=>{
     try {
-        const user = req.user.id
+        
         const productId = req.body.productId
-        if(!user){
-            console.log("No user")
-            req.flash("error_msg","Please login to add products to cart")
-            return res.status(401).json({ 
-                redirect: true, 
+        if(!req.user){
+            console.log("No user");
+            req.flash("error_msg", "Please login to wishlist");
+            return res.status(401).json({
+                redirect: true,
                 redirectUrl: "/login",
-                message: "Please login to add products to cart"
-            })
+                message: "Please login to wishlist"
+            });
         } 
+        const user = req.user.id
         const existing_wishlist = await wishlistModel.findOne({user:user})
         if(existing_wishlist) {
             const productexist = existing_wishlist.products.includes(productId)
@@ -810,9 +832,12 @@ const addtoWishlist = async(req,res)=>{
             const wishlist = new wishlistModel({user,products:[productId]})
             await wishlist.save();
         }
-            
+        res.status(200).send({message:"added to wishlist"})
+
     } catch (error) {
         console.log(error)
+        res.status(500).send({message:error.message})
+
     }
 }
 
@@ -827,7 +852,10 @@ const removefromWishlist = async(req,res)=>{
             await wishlist.save()
            }
         }
-    }catch(error){}
+        res.status(200).send({message :"removed from wishlist"})
+    }catch(error){
+        console.log(error)
+    }
 }
 
 module.exports = {
