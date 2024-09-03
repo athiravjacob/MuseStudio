@@ -346,7 +346,7 @@ const chartData = {
     const weeklypaidOrders = await orderModel.aggregate([
       {
           $match: {
-              createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+             
               paymentStatus : 'paid'
           }
       },
@@ -366,7 +366,7 @@ const chartData = {
       const pendingOrders = await orderModel.aggregate([
         {
             $match: {
-                createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+                
                 paymentStatus : 'pending'
             }
         },
