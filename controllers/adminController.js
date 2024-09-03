@@ -330,7 +330,6 @@ const chartData = {
 
     // sales Count
     const salesCount = await orderModel.aggregate([
-        
         {
             $group: {
                 _id: {
