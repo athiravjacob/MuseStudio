@@ -262,15 +262,11 @@ const loadDashboard = async(req,res)=>{
 
 
 // Get the start and end of the current month
-const startMonth = moment().startOf('month').toDate();
-const endMonth = moment().endOf('month').toDate();
+const startMonth = moment().subtract(1, 'months').startOf('month').toDate();
+const endMonth = moment().subtract(1, 'months').endOf('month').toDate();
 
 const monthSales = await orderModel.aggregate([
-  {
-    $match: {
-      createdAt: { $gte: startMonth, $lte: endMonth }
-    }
-  },
+  
   {
     $group: {
       _id: { 
@@ -334,11 +330,7 @@ const chartData = {
 
     // sales Count
     const salesCount = await orderModel.aggregate([
-        {
-            $match: {
-                createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-            }
-        },
+        
         {
             $group: {
                 _id: {
@@ -391,6 +383,7 @@ const chartData = {
             $sort: { "_id.week": 1 } // Sort by week number
         }
     ]);
+    console.log(chartData)
 
       res.render("dashboard",{
         revenue:totalRevenue,
