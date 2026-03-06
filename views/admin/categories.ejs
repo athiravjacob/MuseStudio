@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <form method="post" action="/admin/category/addCategory" id="categoryForm">
+                            <form method="post" action="/admin/category/addCategory" id="categoryForm" enctype="multipart/form-data">
                                 <div class="mb-4">
                                     <label  class="form-label">Name</label>
                                     <input type="text" id="nameInput" placeholder="Type here" class="form-control" name="name" required/>
@@ -27,6 +27,16 @@
                                     <label class="form-label">Description</label>
                                     <textarea id="descriptionInput" placeholder="Type here" name="description" class="form-control" required></textarea>
                                 </div>
+
+    <div class="mb-4">
+        <label class="form-label">Category Image</label>
+        <input type="file" class="form-control" id="categoryImage" name="image" accept="image/*" required>
+        </div>
+
+        <div class="mb-3">
+            <img id="imagePreview" src="" width="80" style="display:none;border-radius:8px;">
+            </div>
+            
                                 <% if (success_msg) { %>
                                     <div style="color: green;"><%= success_msg %></div>
                                 <% } %>
@@ -46,19 +56,22 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Status</th>
-                                            <th class="text-end">Action</th>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
                                         </tr>
-                                    </thead>
+                                        </thead>
                                     
                                     <tbody>
                                         
                                         <% if(category.length >0){ %>
                                             <% for(let i =0;i< category.length;i++){ %>
                                         <tr>
+                                            <td>
+                                                <img src="/uploads/<%=category[i].image%>" width="50" style="border-radius:6px">
+                                                </td>
                                             <td><b><%=category[i].name %></b></td>
                                             <td><%=category[i].description %></td>
                                             <% if (category[i].status) { %>
@@ -72,8 +85,16 @@
                                                     <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
                                                     <div class="dropdown-menu">
                                                         <a class="dropdown-item" href="#">View detail</a>
-                                                        <a class="dropdown-item" onclick="changeToEdit('<%=category[i]._id%>','<%=category[i].name%>','<%=category[i].description%>')" href="#" >Edit info</a>
-                                                       
+                                                        <a class="dropdown-item"
+                                                        onclick="changeToEdit(
+                                                        '<%=category[i]._id%>',
+                                                        '<%=category[i].name%>',
+                                                        '<%=category[i].description%>',
+                                                        '<%=category[i].image%>'
+                                                        )"
+                                                        href="#">
+                                                        Edit info
+                                                        </a>                                                       
                                                         <%if(category[i].status){ %>
                                                             <a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteCategory('<%=category[i]._id%>')" >Delete</a>
                                                         <% }else{ %>
@@ -139,26 +160,26 @@
             }
         
 //*****************************************Change To Edit Category
-            const changeToEdit = async(id,name,desc)=>{
-                try {
+const changeToEdit = (id,name,desc,image)=>{
 
-                const categoryForm = document.getElementById('categoryForm')
-                const createButton = document.getElementById('createCategory')
-                const editButton = document.getElementById('editCategory')
-                const nameField = document.getElementById('nameInput')
-                const descField = document.getElementById('descriptionInput')
-                nameField.value =name
-                descField.value = desc
-                createButton.classList.add('d-none')
-                editButton.classList.remove('d-none')
-                categoryForm.removeAttribute('action')
-                editButton.setAttribute('data-category-id',id)
+const createButton = document.getElementById('createCategory')
+const editButton = document.getElementById('editCategory')
+const nameField = document.getElementById('nameInput')
+const descField = document.getElementById('descriptionInput')
+const preview = document.getElementById('imagePreview')
 
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-            
+nameField.value = name
+descField.value = desc
+
+preview.src = `/uploads/categories/${image}`
+preview.style.display = "block"
+
+createButton.classList.add('d-none')
+editButton.classList.remove('d-none')
+
+editButton.setAttribute('data-category-id',id)
+
+}
             //********************* Edit Category
             document.addEventListener('DOMContentLoaded', function() {
                 const editButton = document.getElementById('editCategory');
@@ -171,44 +192,39 @@
 
                 
             });
+            const editCategory = async () => {
 
-const editCategory = async () => {
-   
+try {
 
-    try {
-        const editButton = document.getElementById('editCategory');
-        const nameField = document.getElementById('nameInput');
-        const descField = document.getElementById('descriptionInput');
-        const categoryId = editButton.getAttribute('data-category-id');
-        const categoryForm = document.getElementById('categoryForm')
+const editButton = document.getElementById('editCategory');
+const categoryId = editButton.getAttribute('data-category-id');
+const categoryForm = document.getElementById('categoryForm');
 
-        
-        console.log('Category ID:', categoryId);
-        console.log('Name:', nameField.value);
-        console.log('Description:', descField.value);
-        const data = {}
-        const formData = new FormData(categoryForm).forEach((value,key)=> data[key]=value)
-        const response = await fetch(`/admin/category/edit/${categoryId}`, {
-            method: 'PUT',
-            headers:{
-                'content-Type':'application/json'
-            },
-        
-            body:JSON.stringify(data )
-        });
+const formData = new FormData(categoryForm);
 
-        if (response.ok) {
-           console.log('Category updated successfully');
-            categoryForm.action =`/admin/category/addCategory`
-            window.location.reload();
-        } else {
-           console.log('Error updating the category');
-            // Handle error (e.g., show an error message to the user)
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        // Handle error (e.g., show an error message to the user)
-    }
+const response = await fetch(`/admin/category/edit/${categoryId}`,{
+method:'PUT',
+body:formData
+});
+
+if(response.ok){
+
+console.log("Category updated")
+window.location.reload()
+
+}else{
+
+console.log("Error updating category")
+
+}
+
+}catch(error){
+
+console.log(error)
+
+}
+
+
 };
         </script>
        <%-include('../layoutAdmin/footer.ejs') %>

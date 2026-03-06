@@ -44,6 +44,7 @@ const verifyAdmin = async (req, res)=>{
 }
 
 
+// Function to generate sales report based on date
 const generateSalesReport = async (startDate, endDate) => {
   try {
     let matchQuery = { orderStatus: { $ne: 'canceled' } };
@@ -510,53 +511,113 @@ const loadCategory = async(req,res)=>{
 
 // *************************** Add Category
 const addCategory = async (req, res) => {
+
   try {
-    const { name, description } = req.body;
-
-    // Check if the category already exists
-    const existingCategory = await categoryModel.findOne({ name });
-    if (existingCategory) {
-      req.flash("error_msg", "Category already exists");
-      console.log("Category already exists");
-      return res.redirect('/admin/category')
-    }
-
-    // Create a new category
-    const newCategory = new categoryModel({ name, description });
-    const categoryAdded = await newCategory.save();
-
-    if (categoryAdded) {
-      req.flash("success_msg", "New Category added");
-      return res.redirect('/admin/category')
-
-    } else {
-      req.flash("error_msg", "Unable to save new category");
-      console.log("Unable to save new category");
-    }
-  } catch (error) {
-    req.flash("error_msg", "Oops! Error while creating new category");
-    console.log(error.message);
+    console.log("add category")
+  
+  const { name, description } = req.body
+  
+  const image = req.file ? req.file.filename : null
+  if(image) console.log(image)
+  
+  // check duplicate
+  const existingCategory = await categoryModel.findOne({ name })
+  
+  if(existingCategory){
+  
+  req.flash("error_msg","Category already exists")
+  return res.redirect('/admin/category')
+  
   }
-}
+  
+  const newCategory = new categoryModel({
+  
+  name,
+  description,
+  image
+  
+  })
+  
+  const categoryAdded = await newCategory.save()
+  
+  if(categoryAdded){
+  
+  req.flash("success_msg","New Category Added")
+  return res.redirect('/admin/category')
+  
+  }else{
+  
+  req.flash("error_msg","Unable to save category")
+  return res.redirect('/admin/category')
+  
+  }
+  
+  }catch(error){
+  
+  console.log(error)
+  req.flash("error_msg","Error creating category")
+  res.redirect('/admin/category')
+  
+  }
+  
+  }
 // ********************* Edit Category
-const editCategory = async(req,res)=>{
-  try {
-   const {name,description }= req.body
-   const id = req.params.id
 
-   const category = await categoryModel.findByIdAndUpdate(id,{name,description},{new:true})
-   if (category) {
-    req.flash("success_msg","Category updated successfully")
-    res.status(200).json({ success: true, data: category });
-  } else {
-    req.flash("error_msg","There was some error ")
-    res.status(404).json({ success: false, message: 'Category not found' });
-  }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Network error while updating category' });
+const editCategory = async (req,res)=>{
 
+  try{
+    console.log("add category")
+
+  
+  const {name,description} = req.body
+  const id = req.params.id
+  
+  let updateData = {
+  name,
+  description
   }
-}
+  
+  // if new image uploaded
+  if(req.file){
+  
+  updateData.image = req.file.filename
+  
+  }
+  
+  const category = await categoryModel.findByIdAndUpdate(
+  id,
+  updateData,
+  {new:true}
+  )
+  
+  if(category){
+  
+  res.status(200).json({
+  success:true,
+  data:category
+  })
+  
+  }else{
+  
+  res.status(404).json({
+  success:false,
+  message:"Category not found"
+  })
+  
+  }
+  
+  }catch(error){
+  
+  console.log(error)
+  
+  res.status(500).json({
+  success:false,
+  message:"Error updating category"
+  })
+  
+  }
+  
+  }
 
 // ********************************************************************* Delete and restore Category
 const deleteRestoreCategory = async(req,res)=>{

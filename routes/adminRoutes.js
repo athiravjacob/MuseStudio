@@ -22,9 +22,9 @@ adminRoute.get('/customers/unblock/:id',clearCache,authenticateAdmin,adminContro
 adminRoute.get('/customers/block/:id',clearCache,authenticateAdmin,adminController.blockCustomer)
 
 adminRoute.get('/category',clearCache,authenticateAdmin,adminController.loadCategory)
-adminRoute.post('/category/addCategory',adminController.addCategory)
+adminRoute.post('/category/addCategory',upload.single("image"),adminController.addCategory)
 adminRoute.patch('/category/delete/:id',adminController.deleteRestoreCategory)
-adminRoute.put('/category/edit/:id',adminController.editCategory)
+adminRoute.put('/category/edit/:id',upload.single("image"),adminController.editCategory)
 
 adminRoute.get('/products',clearCache,authenticateAdmin,adminController.loadProducts)
 adminRoute.get('/products/addProduct',clearCache,authenticateAdmin,adminController.loadaddProduct)
