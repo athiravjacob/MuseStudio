@@ -9957,3 +9957,175 @@ span.fi-rs-apps {
 .zoomContainer{ z-index: 9999;}
 .zoomWindow{ z-index: 9999;}
 /*# sourceMappingURL=main.css.map */
+/* =========================
+   TABLET
+=========================*/
+@media (max-width:1024px){
+
+  .hero{
+    grid-template-columns:1fr;
+  }
+  
+  .hero-right{
+    height:420px;
+  }
+  
+  .hero-left{
+    padding:60px 40px;
+    text-align:center;
+  }
+  
+  .hero-cta{
+    justify-content:center;
+  }
+  
+  .categories,
+  .products{
+    padding:60px 40px;
+  }
+  
+  .category-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+  
+  .product-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+  
+  .about-content{
+    grid-template-columns:1fr;
+  }
+  
+  .about-image{
+    height:350px;
+  }
+  
+  .features{
+    grid-template-columns:repeat(2,1fr);
+  }
+  
+  .feature{
+    border-bottom:1px solid var(--border);
+  }
+  
+  }
+  
+  
+  /* =========================
+     MOBILE
+  =========================*/
+  @media (max-width:768px){
+  
+  .hero-left{
+    padding:50px 28px;
+  }
+  
+  .hero h1{
+    font-size:38px;
+  }
+  
+  .hero-left p{
+    max-width:100%;
+  }
+  
+  .hero-right{
+    height:300px;
+  }
+  
+  .categories,
+  .products{
+    padding:50px 20px;
+  }
+  
+  .section-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:18px;
+  }
+  
+  .category-grid{
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  
+  .category-card img{
+    height:200px;
+  }
+  
+  .product-grid{
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  
+  .product-card img{
+    height:200px;
+  }
+  
+  .about-text{
+    padding:50px 25px;
+  }
+  
+  .about-text p{
+    max-width:100%;
+  }
+  
+  .features{
+    grid-template-columns:1fr 1fr;
+  }
+  
+  .feature{
+    padding:30px 20px;
+  }
+  
+  }
+  
+  
+  /* =========================
+     SMALL MOBILE
+  =========================*/
+  @media (max-width:480px){
+  
+  .hero h1{
+    font-size:32px;
+  }
+  
+  .hero-eyebrow{
+    letter-spacing:0.3em;
+  }
+  
+  .hero-right{
+    height:260px;
+  }
+  
+  .category-grid{
+    grid-template-columns:1fr;
+  }
+  
+  .product-grid{
+    grid-template-columns:1fr;
+  }
+  
+  .features{
+    grid-template-columns:1fr;
+  }
+  
+  .hero-cta{
+    flex-direction:column;
+    gap:12px;
+  }
+  
+  .btn-shop,
+  .btn-ghost{
+    width:100%;
+    text-align:center;
+  }
+  
+  .category-card img{
+    height:220px;
+  }
+  
+  .product-card img{
+    height:220px;
+  }
+  
+  }

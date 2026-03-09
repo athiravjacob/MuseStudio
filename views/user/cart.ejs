@@ -273,7 +273,7 @@
                                                 <% if(cart.items.length > 0){ %>
                                                 <tr>
                                                     <td class="cart_total_label">Cart Subtotal</td>
-                                                    <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$<%= cart.totalPrice %></span></td>
+                                                    <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">₹<%= cart.totalPrice %></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="cart_total_label">
@@ -282,11 +282,11 @@
                                                             <% if(cart.couponDiscount > 0){ %>
                                                             <a href="" onclick="removeCoupon()"  class="text-end text-decoration-none">Remove</a><% } %>
                                                         </div> 
-                                                          <td class="cart_total_amount"><i class="ti-gift mr-5"></i> <%=cart.couponDiscount %></td>
+                                                          <td class="cart_total_amount"><i class="ti-gift mr-5"></i>₹ <%=cart.couponDiscount %></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="cart_total_label">Total</td>
-                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= cart.shippingTotal %></span></strong></td>
+                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">₹<%= cart.shippingTotal %></span></strong></td>
                                                 </tr>
                                                 <% } else { %>
                                                 <tr>
