@@ -36,7 +36,7 @@ module.exports = function(passport){
             let user = await userModel.findOne({googleID:profile.id})
             const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
             if(!user){
-                user = await UserModel.create({
+                user = await userModel.create({
                     username:profile.displayName,
                     googleID:profile.id,
                     isGoogleUser:true,

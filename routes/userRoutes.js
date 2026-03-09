@@ -6,7 +6,6 @@ const {authenticate,logout,userStatus} =require('../middleware/user_auth')
 const fetchCategory = require('../middleware/fetchCategory')
 const isLoggedIn = require('../middleware/userLoggedIn')
 const {clearCache} = require('../middleware/clearCache')
-const breadcrumb = require('../middleware/breadcrumb')
 
 const userControl = require('../controllers/userController')
 
