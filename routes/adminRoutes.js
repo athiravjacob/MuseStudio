@@ -6,7 +6,6 @@ const upload = require('../utils/uploadImages')
 const {authenticateAdmin} = require('../middleware/admin_auth')
 const {clearCache} = require('../middleware/clearCache')
 
-
 adminRoute.set('view engine','ejs')
 adminRoute.set('views','./views/admin')
 

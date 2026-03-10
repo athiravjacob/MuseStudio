@@ -44,7 +44,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Overall Order Amount</h6>
-                            <p class="overall-stats" id="salesAmt">$ <%=totalSalesAmount.toFixed(1) %></p>
+                            <p class="overall-stats" id="salesAmt">₹ <%=totalSalesAmount.toFixed(1) %></p>
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title">Overall Discount</h6>
-                            <p class="overall-stats" id="discount">$ <%=totDiscount.toFixed(1) %></p>
+                            <p class="overall-stats" id="discount">₹ <%=totDiscount.toFixed(1) %></p>
                         </div>
                     </div>
                 </div>
@@ -85,9 +85,9 @@
                     <tr>
                         <td><%= sale.date %></td>
                         <td><%= sale.totalOrders %></td>
-                        <td>$<%= sale.grossSales %></td>
-                        <td>$<%= sale.couponDiscount %></td>
-                        <td>$<%= Number(sale.grossSales) - Number(sale.couponDiscount) %></td>
+                        <td>₹<%= sale.grossSales %></td>
+                        <td>₹<%= sale.couponDiscount %></td>
+                        <td>₹<%= Number(sale.grossSales) - Number(sale.couponDiscount) %></td>
                     </tr>
                     <% 
                         }); 
@@ -98,9 +98,9 @@
                     <tr>
                         <th>Total :</th>
                         <td><%= totalOrders %></td>
-                        <td>$<%= totalGrossSales.toFixed(1) %></td>
-                        <td>$<%= totalCouponDiscount.toFixed(1) %></td>
-                        <td>$<%= totalNetSales.toFixed(1) %></td>
+                        <td>₹<%= totalGrossSales.toFixed(1) %></td>
+                        <td>₹<%= totalCouponDiscount.toFixed(1) %></td>
+                        <td>₹<%= totalNetSales.toFixed(1) %></td>
                     </tr>
                 </tfoot>
             </table>

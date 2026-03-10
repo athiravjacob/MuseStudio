@@ -21,9 +21,9 @@
                             <div class="info-wrap">
                                 <a href="#" class="title text-truncate"><%=product[i].name %></a>
                                 <% if(!product[i].isDiscounted) {%>
-                                <div class="price mb-2"> $<%=product[i].originalPrice %></div> 
+                                <div class="price mb-2"> ₹<%=product[i].originalPrice %></div> 
                                 <% }else{ %>
-                                    <div class="price mb-2"> $<%=product[i].offerPrice %></div> 
+                                    <div class="price mb-2"> ₹<%=product[i].offerPrice %></div> 
                                 <% } %>
                                 <% if(product[i].quantity > 0){%>
                                     <div class="price mb-2"><%=product[i].quantity %> in stock</div> 

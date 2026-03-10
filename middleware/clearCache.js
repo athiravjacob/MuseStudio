@@ -1,10 +1,17 @@
-const clearCache = async(req,res,next)=>{
+const clearCache = (req, res, next) => {
     try {
-        res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-        next()
-        
+        res.set(
+            'Cache-Control',
+            'no-store, no-cache, must-revalidate, private'
+        );
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
+        next();
     } catch (error) {
-        console.log(error.message)
+        console.log(error.message);
+        next(error);
     }
-}
-module.exports = {clearCache}
+};
+
+module.exports = { clearCache };
