@@ -19,6 +19,7 @@ app.use('/uploads/',express.static('uploads'));
 app.use(flash())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1)
 
 
 const port = process.env.PORT || 3000; 
