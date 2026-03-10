@@ -4,7 +4,7 @@ const passport = require('passport')
 require('../config/passportConfig')
 const {authenticate,logout,userStatus} =require('../middleware/user_auth')
 const fetchCategory = require('../middleware/fetchCategory')
-const isLoggedIn = require('../middleware/userLoggedIn')
+const {isLoggedIn} = require('../middleware/userLoggedIn')
 const {clearCache} = require('../middleware/clearCache')
 const { isLoggedOut } = require('../middleware/isLoggedOut')
 
