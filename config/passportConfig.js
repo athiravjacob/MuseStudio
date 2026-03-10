@@ -30,8 +30,8 @@ module.exports = function(passport){
     passport.use(new GoogleStrategy({
         clientID:process.env.CLIENT_ID,
         clientSecret:process.env.CLIENT_SECRET,
-        callbackURL:"/auth/google/callback"
-    },async(token,tokenSecret,profile,done)=>{
+        callbackURL:process.env.GOOGLE_CALLBACK_URL
+        },async(token,tokenSecret,profile,done)=>{
         try {
             let user = await userModel.findOne({googleID:profile.id})
             const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
